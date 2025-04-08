@@ -72,8 +72,8 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
 
     # Close button
     button_x, button_y = c[0] + width, c[1]
-    button_size = r//3
-    fltk.cercle(button_x - r // 3,
-                button_y + r // 3, 
+    button_size = r // 4
+    fltk.cercle(button_x - button_size * 3,
+                button_y + button_size * 2, 
                 button_size,
                 remplissage="#ec6a5e", tag=f"close_{key[0]}", epaisseur=0)

@@ -26,6 +26,7 @@ class Map:
     def dump_img(self) -> PIL.Image:
         """
         Renvoie une image représentant la carte.
+        Prend soin de ne pas la recréer s'il  suffit de faire des modifications.
         """
         x,y = len(self.grille), len(self.grille[0])
         if self.img is not None:

@@ -21,6 +21,7 @@ class Map:
         self.tuiles = cree_dico('deps/tuiles')
         # Pour mémoïser
         self.img = None
+        print(self.tuiles)
 
     def dump_img(self) -> PIL.Image:
         """

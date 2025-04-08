@@ -11,7 +11,7 @@ def cree_dico(path:str) -> dict:
     """
     tuiles = os.listdir(path)
     return {
-        tuile[:-3]:path+'/'+tuile 
+        tuile[:-4]:path+'/'+tuile 
         for tuile in tuiles
     }
 

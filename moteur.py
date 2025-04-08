@@ -1,9 +1,8 @@
 import deps.modules.fltk as fltk,deps.modules.fltk_addons as addons
 from deps.map import Map
 import deps.ui as ui
-
 addons.init(fltk)
-import os
+import asyncio
 
 def mainloop():
     #Variables à définir
@@ -12,15 +11,16 @@ def mainloop():
     h = 600
     end = False
 
+    map = Map([['MRPM' for _ in range(10)] for i in range(10)])
+    map.dump_img()
     
     fltk.cree_fenetre(w, h, redimension=True)
-    map = Map()
-    map.dump_img()
 
     def draw():
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
+        size = min(w, h)
         # map 
-        fltk.image(w//2, h//2, 'deps/map.png', ancrage='center', hauteur=h, largeur=w, tag='map')
+        fltk.image(w//2, h//2, 'map.png', ancrage='center', hauteur=size, largeur=size, tag='map')
 
         # popup
         ui.create_popup(['popup', True], "Image loaded successfully!")
@@ -58,5 +58,5 @@ def mainloop():
             draw()
 
 
-
-mainloop()
+if __name__ == '__main__':
+    mainloop()

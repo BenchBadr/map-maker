@@ -20,6 +20,19 @@ def change_state(key:str) -> None:
     """
     states[key] = not states[key]
 
+def get_state(key:str) -> bool:
+    """
+    Récupère l'état d'un component.
+
+    Args:
+        key (str): Identifiant unique du component.
+
+    Returns:
+        bool: État du component (True pour visible, False pour invisible).
+    """
+    return states.get(key, False)
+
+
 def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_color="black", color="white") -> None:
     """
     Crée un popup avec un message et un bouton de fermeture. 
@@ -65,7 +78,7 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     fltk.rectangle(c[0]+(width - r), c[1]+r, c[0]+width, c[1]+(height - r), remplissage=bg_color, epaisseur=0)
 
     # Title 
-    fltk.texte(c[0] + width // 2, c[1] + height // 20, message, couleur=color, ancrage="center", taille=int(r // 4))
+    fltk.texte(c[0] + width // 2, c[1] + r // 2, message, couleur=color, ancrage="center", taille=int(r // 4))
 
     # main area
     fltk.rectangle(c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r), remplissage=bg_color, epaisseur=0)

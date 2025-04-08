@@ -21,7 +21,6 @@ class Map:
         self.tuiles = cree_dico('deps/tuiles')
         # Pour mémoïser
         self.img = None
-        print(self.tuiles)
 
     def dump_img(self) -> PIL.Image:
         """
@@ -69,5 +68,16 @@ class Map:
         self.img = image
         image.save('map.png')
         return image
+    
+    def edit_tile(self, i:int, j:int, tuile:str) -> None:
+        """
+        Modifie la tuile à la position (i, j) de la grille.
+        Args:
+            i: La coordonnée i de la tuile.
+            j: La coordonnée j de la tuile.
+            tuile: Le nom de la nouvelle tuile.
+        """
+        self.grille[i][j] = tuile
+        self.dump_img()
     
 

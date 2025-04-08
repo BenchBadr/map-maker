@@ -33,7 +33,7 @@ def get_state(key:str) -> bool:
     return states.get(key, False)
 
 
-def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_color="black", color="#b8b8b6") -> None:
+def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_color="#1e1e1e", color="#b8b8b6") -> None:
     """
     Crée un popup avec un message et un bouton de fermeture. 
 

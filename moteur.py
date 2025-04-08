@@ -18,6 +18,7 @@ def mainloop():
     map.dump_img()
 
     def draw():
+        h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
         # map 
         fltk.image(w//2, h//2, 'deps/map.png', ancrage='center', hauteur=h, largeur=w, tag='map')
 
@@ -54,6 +55,7 @@ def mainloop():
 
         elif ev[0] == 'Redimension':
             fltk.efface_tout()
+            draw()
 
 
 

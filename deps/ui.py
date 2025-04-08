@@ -65,7 +65,7 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     fltk.rectangle(c[0]+(width - r), c[1]+r, c[0]+width, c[1]+(height - r), remplissage=bg_color, epaisseur=0)
 
     # Title 
-    fltk.texte(c[0] + width // 2, c[1] + height // 20, message, couleur=color, ancrage="center", taille=13)
+    fltk.texte(c[0] + width // 2, c[1] + height // 20, message, couleur=color, ancrage="center", taille=int(r // 4))
 
     # main area
     fltk.rectangle(c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r), remplissage=bg_color, epaisseur=0)

@@ -20,7 +20,7 @@ def change_state(key:str) -> None:
     """
     states[key] = not states[key]
 
-def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_color="white", color="black") -> None:
+def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_color="#313338", color="white") -> None:
     """
     Crée un popup avec un message et un bouton de fermeture. 
 
@@ -70,4 +70,4 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     button_x, button_y = c[0] + width, c[1]
     button_size = 30
     fltk.cercle(button_x - button_size, button_y + button_size, button_size // 2,
-                couleur="black", remplissage="red", tag=f"close_{key[0]}")
+                remplissage="#ec6a5e", tag=f"close_{key[0]}", epaisseur=0)

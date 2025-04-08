@@ -22,7 +22,7 @@ def mainloop():
         fltk.image(w//2, h//2, 'deps/map.png', ancrage='center', hauteur=h, largeur=w, tag='map')
 
         # popup
-        ui.create_popup(['popup', True], "Image loaded successfully!", bg_color="lightblue", color="black")
+        ui.create_popup(['popup', True], "Image loaded successfully!")
 
     draw()
 

@@ -19,22 +19,52 @@ class Map:
         self.dim = len(self.grille), len(self.grille[0])
         import os
         self.tuiles = cree_dico('deps/tuiles')
+        # Pour mémoïser
+        self.img = None
 
-    def dump_img(self):
+    def dump_img(self) -> PIL.Image:
         """
         Renvoie une image représentant la carte.
         """
         x,y = len(self.grille), len(self.grille[0])
-        image = PIL.Image.new('RGB', (x*32, y*32), color=(255, 255, 255))
-        for i in range(x):
-            for j in range(y):
-                tuile = self.grille[i][j]
-                if tuile is not None:
-                    image.paste(PIL.Image.open(self.tuiles[tuile]), (i*32, j*32))
+        if self.img is not None:
+            image = self.img.copy()
+
+            # En cas de changement de taille de la grille
+            if image.size != (x*32, y*32):
+                # Si plus petit, agrandir la taille de l'image
+                if image.size[0] < x or image.size[1] < y:
+                    new_image = PIL.Image.new('RGB', (x*32, y*32), color=(255, 255, 255))
+                    new_image.paste(image, (0, 0))
+                    image = new_image
                 else:
-                    # Créer une case blanche si aucune tuile n'est spécifiée
-                    white_square = PIL.Image.new('RGB', (32, 32), color=(255, 255, 255))
-                    image.paste(white_square, (i*32, j*32))
+                    # Si l'image est plus grande, la recadrer
+                    image = image.crop((0, 0, x*32, y*32))
+
+            # Mettre à jour uniquement les cases nécessaires
+            for i in range(x):
+                for j in range(y):
+                    tuile = self.grille[i][j]
+                    if tuile is not None:
+                        image.paste(PIL.Image.open(self.tuiles[tuile]), (i*32, j*32))
+                    else:
+                        white_square = PIL.Image.new('RGB', (32, 32), color=(255, 255, 255))
+                        image.paste(white_square, (i*32, j*32))
+            self.img = image
+            
+        else:
+            image = PIL.Image.new('RGB', (x*32, y*32), color=(255, 255, 255))
+            for i in range(x):
+                for j in range(y):
+                    tuile = self.grille[i][j]
+                    if tuile is not None:
+                        image.paste(PIL.Image.open(self.tuiles[tuile]), (i*32, j*32))
+                    else:
+                        # Créer une case blanche si la tuile est None
+                        white_square = PIL.Image.new('RGB', (32, 32), color=(255, 255, 255))
+                        image.paste(white_square, (i*32, j*32))
+
+        self.img = image
         image.save('map.png')
         return image
     

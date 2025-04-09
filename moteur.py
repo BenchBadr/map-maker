@@ -17,6 +17,9 @@ def mainloop():
     
     fltk.cree_fenetre(w, h, redimension=True)
 
+    def tile_picker():
+        ui.create_popup(['popup', False], "Tile Picker", max_width=500, max_height=500)
+
     def draw():
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
         dim = map.dim
@@ -32,11 +35,19 @@ def mainloop():
         if grid:
             ui.grid(dim)
         # popup
-        ui.create_popup(['popup', False], "Tile Picker", max_width=500, max_height=500)
+        tile_picker()
 
     draw()
 
     hover_effect = []
+    dragging = False
+    dragged_object = None
+    last_x, last_y = None, None
+
+    def erase_popup(key):
+        for p in ['', 'close_','drag_','expand_','xclose_','xexpand_','blank_']:
+            fltk.efface(p+key)
+
 
     while not end:
         fltk.mise_a_jour()
@@ -72,8 +83,15 @@ def mainloop():
         elif len(hovered) == 0:
             fltk.efface('grid_hover')
 
-
-        if ev is None: 
+        if ev is None:
+            # If dragging, update the position of the dragged object
+            if dragging:
+                x, y = fltk.abscisse_souris(), fltk.ordonnee_souris()
+                if last_x != None:
+                    print(last_x - x, last_y - y)
+                    ui.set_coords(dragged_object, x - last_x, y - last_y)
+                    erase_popup(dragged_object)
+                    tile_picker()
             continue
         elif ev[0] =="Quitte":
             fltk.ferme_fenetre()
@@ -81,16 +99,27 @@ def mainloop():
             break
 
         elif ev[0] == "ClicGauche":
-            clicked = hovered
+            clicked = set(hovered)
+            x, y = fltk.abscisse(ev), fltk.ordonnee(ev)
+            if dragging:
+                dragged_object = None
+                dragging = False
+                last_x, last_y = None, None
             for tag in clicked:
-                if tag.startswith('close_'):
-                    key = tag.split('_')[1]
-                    ui.change_state(key)
-                if tag.startswith('expand_'):
-                    key = tag.split('_')[1]
-                    ui.set_fullscreen(key)
+                keys = tag.split('_')
+                print(clicked)
+                if keys[0] == 'drag' and f'expand_{keys[1]}' not in clicked and f'close_{keys[1]}' not in clicked:
+                    if not dragging:
+                        dragging = True
+                        dragged_object = keys[1]
+                        last_x, last_y = x, y
+                        print('start drag')
+                if keys[0] == 'close':
+                    ui.change_state(keys[1])
+                if keys[0] == 'expand':
+                    ui.set_fullscreen(keys[1])
                 if len(clicked) == 1:
-                    if tag.startswith('grid_'):
+                    if keys[0] == 'grid':
                         if ui.none_active():
                             tuile = [int(n) for n in tag.split('_')[1].split('-')]
                             map.edit_tile(tuile[1], tuile[0], 'SSDH')

@@ -46,7 +46,7 @@ def set_fullscreen(key:str) -> None:
     if states[key]!=2:
         states[key] = 2
     else:
-        states[key] = 1
+        states[key] = (0,0)
 
 def close_active() -> None:
     """
@@ -67,6 +67,17 @@ def none_active() -> bool:
         if value:
             return False
     return True
+
+def set_coords(key:str, x:int,y:int) -> None:
+    """
+    Quand non fermé et non fullscreen, déplace le popup à la position (x,y).
+
+    Args:
+        key (str): Identifiant unique du component.
+        x (int): Coordonnée x.
+        y (int): Coordonnée y.
+    """
+    states[key] = (x,y)
 
 
 def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_color="#1e1e1e", color="#b8b8b6", max_width=float('inf'), max_height=float('inf')) -> None:
@@ -96,8 +107,12 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
         height = l
     else:
         width, height = min(width * w, max_width), min(height * l, max_height)
+    
     c = abs(width - w)//2, abs(height - l)//2
+    if type(states[key[0]]) == tuple:
+            c = [c[0] + states[key[0]][0], c[1] + states[key[0]][1]]
 
+    # cadre fenetre
     # fltk.rectangle(c[0], c[1], c[0]+width, c[1]+height, remplissage='yellow', epaisseur=0, tag=key[0])
 
     # Border radius
@@ -137,11 +152,11 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     
     # Toolbar
     fltk.rectangle(c[0]+rc, c[1], c[0]+(width - rc), c[1]+r, remplissage=toolbar_color, epaisseur=0,
-                   tag=key[0])
+                   tag='drag_'+key[0])
     
     # Complementary toolbar bottom half
     fltk.rectangle(c[0], c[1]+rc, c[0]+width, c[1]+r, remplissage=toolbar_color, epaisseur=0,
-                   tag=key[0])
+                   tag='drag_'+key[0])
 
 
     # Title 
@@ -181,7 +196,7 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     fltk.cercle(button_x + button_size * 3,
                 button_y, 
                 button_size,
-                remplissage="#5e5f60", epaisseur=0)
+                remplissage="#5e5f60", epaisseur=0, tag='blank_'+key[0])
     
 
     # Expand circle
@@ -211,7 +226,7 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
                 button_y + button_size - p,
                 button_x + button_size * 7 - p,
                 button_y - button_size + p,
-                couleur='#61c554', epaisseur=2)
+                couleur='#61c554', epaisseur=2,tag='blank_'+key[0])
 
 
 def grid_selectors(dim: list[int, int]) -> None:

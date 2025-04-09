@@ -2,15 +2,14 @@ import deps.modules.fltk as fltk,deps.modules.fltk_addons as addons
 from deps.map import Map
 import deps.ui as ui
 addons.init(fltk)
-import asyncio
 
 def mainloop():
     #Variables à définir
-    global w, h
+    global w, h, hovered
     w = 600
     h = 600
     end = False
-    grid = True
+    grid = False
 
     map = Map([['MRPM' for _ in range(10)] for i in range(20)])
     map.dump_img()
@@ -39,6 +38,22 @@ def mainloop():
     while not end:
         fltk.mise_a_jour()
         ev = fltk.donne_ev()
+        objects = addons.liste_objets_survoles()
+        hovered = []
+        for obj in objects:
+            for info in addons.recuperer_tags(obj):
+                if info!='current':
+                    hovered.append(info)
+        
+        # hover effects
+        if len(hovered) == 1:
+            tag = hovered[0]
+            if ui.none_active() and tag.startswith('grid_'):
+                fltk.efface('grid_hover')
+                tuile = [int(n) for n in tag.split('_')[1].split('-')]
+                ui.draw_hovered(tuile[0], tuile[1], map.dim)
+        elif len(hovered) == 0:
+            fltk.efface('grid_hover')
 
 
         if ev is None: 
@@ -49,16 +64,7 @@ def mainloop():
             break
 
         elif ev[0] == "ClicGauche":
-
-            objects = addons.liste_objets_survoles()
-            clicked = []
-            for obj in objects:
-                for info in addons.recuperer_tags(obj):
-                    if info!='current':
-                        clicked.append(info)
-
-            if len(clicked) == 0:
-                ui.close_active()
+            clicked = hovered
             for tag in clicked:
                 if tag.startswith('close_'):
                     key = tag.split('_')[1]
@@ -69,8 +75,6 @@ def mainloop():
                             tuile = [int(n) for n in tag.split('_')[1].split('-')]
                             map.edit_tile(tuile[1], tuile[0], 'SSDH')
                             ui.change_state('popup')
-                        else:
-                            ui.close_active()
             fltk.efface_tout()
             draw()
 

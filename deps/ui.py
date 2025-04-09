@@ -2,6 +2,7 @@ import deps.modules.fltk as fltk
 import deps.modules.fltk_addons as addons
 addons.init(fltk)
 
+
 # États des components : visibles ou invisibles
 states = {
 
@@ -109,7 +110,7 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     # Title 
     fltk.texte(c[0] + width // 2, c[1] + r // 2, message, couleur=color, 
                police='Helvetica bold',
-               ancrage="center", taille=int(r // 4))
+               ancrage="center", taille=int(r // 4), tag=key[0])
 
     # main area
     fltk.rectangle(c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r), remplissage=bg_color, epaisseur=0, tag=key[0])
@@ -182,3 +183,20 @@ def grid(dim: list[int, int], color: str = 'blue') -> None:
         fltk.ligne(base_x, base_y + i * unit, base_x + grid_width, base_y + i * unit, couleur=color)
     for j in range(dim[0] + 1):
         fltk.ligne(base_x + j * unit, base_y, base_x + j * unit, base_y + grid_height, couleur=color)
+
+def draw_hovered(i,j, dim, color='red') -> None:
+    """
+    Dessine un carré de couleur différente sur la case (i,j) si survolée.
+    """
+    w, h = fltk.largeur_fenetre(), fltk.hauteur_fenetre()
+    size = min(w, h)
+    unit = size // max(dim)
+
+    grid_width = dim[0] * unit
+    grid_height = dim[1] * unit
+
+    base_x = (w - grid_width) // 2
+    base_y = (h - grid_height) // 2
+
+    # now use fltk.ligne
+    fltk.rectangle(base_x + j * unit, base_y + i * unit, base_x + (j + 1) * unit, base_y + (i + 1) * unit, couleur=color, tag='grid_hover')

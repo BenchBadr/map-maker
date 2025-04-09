@@ -3,6 +3,7 @@ import sys
 import tkinter as tk
 from collections import deque
 from functools import wraps
+from math import ceil
 from os import system
 from pathlib import Path
 from time import sleep, time
@@ -22,25 +23,30 @@ from typing import (
     Union,
 )
 
-
 try:
     # noinspection PyUnresolvedReferences
     from PIL import Image, ImageTk
 
-    print("Bibliothèque PIL chargée.", file=sys.stderr)
     PIL_AVAILABLE = True
+    print("Bibliothèque PIL chargée.", file=sys.stderr)
+    PILImage = Image.Image
+    __pil_cache: Dict[Tuple[Path, Optional[int], Optional[int], int], PILImage] = {}
 except ImportError as e:
+    print("Bibliothèque PIL non disponible. "
+          "Installer pillow pour plus de fonctionnalités", file=sys.stderr)
     PIL_AVAILABLE = False
 
 if TYPE_CHECKING:
-    from typing_extensions import Literal
+    from typing_extensions import Literal, TypedDict
 
     Anchor = Literal["nw", "n", "ne", "w", "center", "e", "sw", "s", "se"]
     TkEvent = tk.Event[tk.BaseWidget]
 else:
     Anchor = str
     TkEvent = tk.Event
+
 FltkEvent = Tuple[str, Optional[TkEvent]]
+
 
 __all__ = [
     # gestion de fenêtre
@@ -48,28 +54,34 @@ __all__ = [
     "ferme_fenetre",
     "redimensionne_fenetre",
     "mise_a_jour",
-    # dessin
-    "ligne",
+    # dessiner
+    "arc",
+    "cercle",
     "fleche",
+    "image",
+    "ligne",
+    "ovale",
+    "point",
     "polygone",
     "rectangle",
-    "cercle",
-    "arc",
-    "point",
-    "image",
     "texte",
-    "taille_texte",
-    # effacer
+    # modif et info objets
     "efface_tout",
     "efface",
+    "modifie",
+    "rotation_image",
+    "redimensionne_image",
+    "deplace",
+    "couleur",
+    "remplissage",
+    "taille_texte",
+    "type_objet",
+    "recuperer_tags",
     # utilitaires
     "attente",
     "capture_ecran",
     "touche_pressee",
-    "abscisse_souris",
-    "ordonnee_souris",
-    "hauteur_fenetre",
-    "largeur_fenetre",
+    "repere",
     # événements
     "donne_ev",
     "attend_ev",
@@ -79,8 +91,15 @@ __all__ = [
     "abscisse",
     "ordonnee",
     "touche",
+    # info fenetre
+    "abscisse_souris",
+    "ordonnee_souris",
+    "hauteur_fenetre",
+    "largeur_fenetre",
+    "liste_objets_survoles",
+    "objet_survole",
+    "est_objet_survole",
 ]
-
 
 class CustomCanvas:
     """
@@ -107,7 +126,7 @@ class CustomCanvas:
             height: int,
             refresh_rate: int = 100,
             events: Optional[List[str]] = None,
-            resizing: bool = False,
+            resizing: bool = False
     ) -> None:
         # width and height of the canvas
         self.width = width
@@ -195,7 +214,34 @@ class CustomCanvas:
 
 
 __canevas: Optional[CustomCanvas] = None
-__img: Dict[Tuple[Path, int, int], PhotoImage] = {}
+__img_cache: Dict[Tuple[Path, Optional[int], Optional[int], int], PhotoImage] = {}
+
+if TYPE_CHECKING:
+    StatDictValue = TypedDict('StatDictValue', {"file": str,
+                                                "height": int,
+                                                "width": int,
+                                                "angle": Union[int, float],
+                                                "photoimage": PhotoImage})
+else:
+    StatDictValue = dict
+
+__img_stats: Dict[int, StatDictValue] = {}
+
+__trans_object_type = {
+    "arc": "arc",
+    "image": "image",
+    "line": "ligne",
+    "oval": "ovale",
+    "polygon": "polygone",
+    "rectangle": "rectangle",
+    "text": "texte",
+}
+
+__trans_options = {
+    "remplissage": "fill",
+    "couleur": "outline",
+    "epaisseur": "width",
+}
 
 
 #############################################################################
@@ -237,7 +283,7 @@ def _fenetre_creee(func: Callable[..., Ret]) -> Callable[..., Ret]:
 
 def cree_fenetre(
         largeur: int, hauteur: int, frequence: int = 100,
-        redimension: bool = False
+        redimension: bool = False, affiche_repere : bool = False
 ) -> None:
     """
     Crée une fenêtre de dimensions ``largeur`` x ``hauteur`` pixels.
@@ -249,6 +295,8 @@ def cree_fenetre(
             'La fenêtre a déjà été crée avec la fonction "cree_fenetre".'
         )
     __canevas = CustomCanvas(largeur, hauteur, frequence, resizing=redimension)
+    if affiche_repere:
+        repere()
 
 
 @_fenetre_creee
@@ -260,6 +308,8 @@ def ferme_fenetre() -> None:
     assert __canevas is not None
     __canevas.root.destroy()
     __canevas = None
+    __img_cache.clear()
+    __img_stats.clear()
 
 
 @_fenetre_creee
@@ -278,7 +328,7 @@ def redimensionne_fenetre(largeur: int, hauteur: int) -> None:
 def mise_a_jour() -> None:
     """
     Met à jour la fenêtre. Les dessins ne sont affichés qu'après
-    l'appel à  cette fonction.
+    l'appel à cette fonction.
     """
     assert __canevas is not None
     __canevas.update()
@@ -318,7 +368,6 @@ def ligne(
     return __canevas.canvas.create_line(
         ax, ay, bx, by, fill=couleur, width=epaisseur, tags=tag
     )
-
 
 
 @_fenetre_creee
@@ -454,6 +503,40 @@ def cercle(
 
 
 @_fenetre_creee
+def ovale(
+        ax: float,
+        ay: float,
+        bx : float,
+        by : float,
+        couleur: str = "black",
+        remplissage: str = "",
+        epaisseur: float = 1,
+        tag: str = "",
+) -> int:
+    """
+    Trace un ovale compris dans le rectangle de coins ``(ax, ay)`` et ``(bx, by)``.
+
+    :param float ax: abscisse du premier coin
+    :param float ay: ordonnée du premier coin
+    :param float bx: abscisse du second coin
+    :param float by: ordonnée du second coin
+    :param str couleur: couleur de trait (défaut 'black')
+    :param str remplissage: couleur de fond (défaut transparent)
+    :param float epaisseur: épaisseur de trait en pixels (défaut 1)
+    :param str tag: étiquette d'objet (défaut : pas d'étiquette)
+    :return: identificateur d'objet
+    """
+    assert __canevas is not None
+    return __canevas.canvas.create_oval(
+        ax, ay, bx, by,
+        outline=couleur,
+        fill=remplissage,
+        width=epaisseur,
+        tags=tag,
+    )
+
+
+@_fenetre_creee
 def arc(
         x: float,
         y: float,
@@ -520,8 +603,6 @@ def point(
 
 
 # Image
-
-
 @_fenetre_creee
 def image(
         x: float,
@@ -531,6 +612,7 @@ def image(
         hauteur: Optional[int] = None,
         ancrage: Anchor = "center",
         tag: str = "",
+        angle: int = 0
 ) -> int:
     """
     Affiche l'image contenue dans ``fichier`` avec ``(x, y)`` comme centre. Les
@@ -546,59 +628,193 @@ def image(
     :param hauteur: hauteur de l'image
     :param ancrage: position du point d'ancrage par rapport à l'image
     :param str tag: étiquette d'objet (défaut : pas d'étiquette)
+    :param int angle: angle de rotation de l'image (défaut : 0)
     :return: identificateur d'objet
     """
     assert __canevas is not None
     if PIL_AVAILABLE:
-        tk_image = _load_pil_image(fichier, hauteur, largeur)
+        tk_image = _load_pil_image(fichier, hauteur, largeur, angle)
     else:
         tk_image = _load_tk_image(fichier, hauteur, largeur)
     img_object = __canevas.canvas.create_image(
-        x, y, anchor=ancrage, image=tk_image, tags=tag
-    )
+        x, y, anchor=ancrage, image=tk_image, tags=tag)
+    __img_stats[img_object] = {"file": fichier,
+                               "height": tk_image.height(),
+                               "width": tk_image.width(),
+                               "angle": angle,
+                               "photoimage": tk_image}
     return img_object
 
 
 def _load_tk_image(fichier: str,
                    hauteur: Optional[int] = None,
-                   largeur: Optional[int] = None) -> PhotoImage:
+                   largeur: Optional[int] = None,
+                   angle: int = 0) -> PhotoImage:
+    if angle != 0:
+        print("Image rotation not implemented "
+              "(install pillow for more features)", file=sys.stderr)
     chemin = Path(fichier)
-    ph_image = PhotoImage(file=fichier)
+    if (chemin, None, None, 0) in __img_cache:
+        ph_image = __img_cache[(chemin, None, None, 0)]
+    else:
+        ph_image = PhotoImage(file=fichier)
+        __img_cache[(chemin, None, None, 0)] = ph_image
     largeur_o = ph_image.width()
     hauteur_o = ph_image.height()
     if largeur is None:
         largeur = largeur_o
     if hauteur is None:
         hauteur = hauteur_o
-    zoom_l = max(1, largeur // largeur_o)
-    zoom_h = max(1, hauteur // hauteur_o)
-    red_l = max(1, largeur_o // largeur)
-    red_h = max(1, hauteur_o // hauteur)
-    largeur = largeur_o * zoom_l // red_l
-    hauteur = hauteur_o * zoom_h // red_h
-    if (chemin, largeur, hauteur) in __img:
-        return __img[(chemin, largeur, hauteur)]
+    zoom_l = max(1, round(largeur / largeur_o))
+    zoom_h = max(1, round(hauteur / hauteur_o))
+    red_l = max(1, round(largeur_o / largeur))
+    red_h = max(1, round(hauteur_o / hauteur))
+    largeur_reelle = ceil(largeur_o * zoom_l / red_l)
+    hauteur_reelle = ceil(hauteur_o * zoom_h / red_h)
+    if largeur_reelle != largeur or hauteur_reelle != hauteur:
+        print(f"Image with requested size {largeur}x{hauteur} "
+              f"displayed with actual size {largeur_reelle}x{hauteur_reelle}",
+              file=sys.stderr)
+        print("(install pillow for fine-grained image resizing)", file=sys.stderr)
+    if (chemin, largeur_reelle, hauteur_reelle, 0) in __img_cache:
+        return __img_cache[(chemin, largeur_reelle, hauteur_reelle, 0)]
     ph_image = ph_image.zoom(zoom_l, zoom_h)
     ph_image = ph_image.subsample(red_l, red_h)
-    __img[(chemin, largeur, hauteur)] = ph_image
+    __img_cache[(chemin, ph_image.width(), ph_image.height(), 0)] = ph_image
     return ph_image
 
 
 def _load_pil_image(fichier: str,
                     hauteur: Optional[int] = None,
-                    largeur: Optional[int] = None) -> PhotoImage:
+                    largeur: Optional[int] = None,
+                    angle: int = 0) -> PhotoImage:
+    assert PIL_AVAILABLE
     chemin = Path(fichier)
-    img = Image.open(fichier)
+    angle %= 360
+    if (chemin, largeur, hauteur, angle) in __img_cache:
+        return __img_cache[(chemin, largeur, hauteur, angle)]
+    if (chemin, largeur, hauteur, 0) in __pil_cache:
+        img = __pil_cache[(chemin, largeur, hauteur, 0)]
+    elif (chemin, None, None, 0) in __pil_cache:
+        img = __pil_cache[(chemin, None, None, 0)]
+    else:
+        img = Image.open(fichier)
+        __pil_cache[(chemin, None, None, 0)] = img
     if largeur is None:
         largeur = img.width
     if hauteur is None:
         hauteur = img.height
-    if (chemin, largeur, hauteur) in __img:
-        return __img[(chemin, largeur, hauteur)]
-    img = img.resize((largeur, hauteur))
+    if largeur != img.width or hauteur != img.height:
+        img = img.resize((largeur, hauteur))
+        __pil_cache[(chemin, largeur, hauteur, 0)] = img
+    if angle != 0:
+        img = img.rotate(angle)
+        __pil_cache[(chemin, largeur, hauteur, angle)] = img
     ph_image = ImageTk.PhotoImage(img)
-    __img[(chemin, largeur, hauteur)] = ph_image  # type:ignore
+    __img_cache[(chemin, largeur, hauteur, angle)] = ph_image  # type:ignore
     return ph_image  # type:ignore
+
+
+@_fenetre_creee
+def _get_anchor_coords(object_or_tag: Union[int, str]) -> Tuple[int, int, str]:
+    assert __canevas is not None
+    x1, y1, x2, y2 = __canevas.canvas.bbox(object_or_tag)
+    xc = (x1 + x2) // 2
+    yc = (y1 + y2) // 2
+    anchor = __canevas.canvas.itemcget(object_or_tag, "anchor")
+    if anchor[0] == 'n':
+        y = y1
+    elif anchor[0] == 's':
+        y = y2
+    else:
+        y = yc
+    if anchor[-1] == 'w':
+        x = x1
+    elif anchor[-1] == 'e':
+        x = x2
+    else:
+        x = xc
+    return x, y, anchor
+
+
+@_fenetre_creee
+def _locate_object(object_or_tag: Union[int, str]) -> int:
+    assert __canevas is not None
+    objects = __canevas.canvas.find_withtag(object_or_tag)
+    if objects == () or objects[0] not in __img_stats:
+        raise ValueError(f"Objet {object_or_tag} inconnu.")
+    return objects[0]
+
+
+@_fenetre_creee
+def hauteur_image(image_id: int) -> int:
+    return __img_stats[image_id]['height']
+
+
+@_fenetre_creee
+def largeur_image(image_id: int) -> int:
+    return __img_stats[image_id]['width']
+
+
+@_fenetre_creee
+def modifie_image(image_id: int, hauteur: int, largeur: int, angle: int) -> None:
+    """
+    Modifie (redimensionne et tourne) l'image désignée par ``objet_ou_tag``.
+
+    :param image_id: identifiant de l'image à modifier
+    :param int largeur: nouvelle largeur de l'image
+    :param int hauteur: nouvelle hauteur de l'image
+    :param int angle: nouvel angle de rotation de l'image
+    """
+    assert __canevas is not None
+    stats = __img_stats[image_id]
+    fichier = stats["file"]
+    if PIL_AVAILABLE:
+        tk_img = _load_pil_image(fichier, hauteur, largeur, angle)
+    else:
+        tk_img = _load_tk_image(fichier, hauteur, largeur, angle)
+        angle = 0
+    stats["angle"] = angle
+    stats["height"] = tk_img.height()
+    stats["width"] = tk_img.width()
+    __canevas.canvas.itemconfig(image_id, image=tk_img)
+
+
+@_fenetre_creee
+def rotation_image(objet_ou_tag: Union[int, str],
+                   angle: float) -> None:
+    """
+    Tourne l'image ``image`` d'un angle ``angle``.
+
+    :param objet_ou_tag: identifiant de l'image ou de l'étiquette de l'image à rotationner
+    :param int angle: angle de rotation de l'image
+    :return: identifiant d'objet
+    """
+    assert __canevas is not None
+    objet = _locate_object(objet_ou_tag)
+    stats = __img_stats[objet]
+    angle += stats["angle"]
+    modifie_image(objet, hauteur_image(objet), largeur_image(objet), angle)
+
+
+@_fenetre_creee
+def redimensionne_image(objet_ou_tag: Union[int, str],
+                        facteur: float) -> None:
+    """
+    Redimensionne l'image ``image`` à la taille ``longueur`` x ``largeur``.
+
+    :param objet_ou_tag: identifiant de l'image ou de l'étiquette de l'image à redimensionner
+    :param int facteur: facteur d'agrandissement ou réduction
+    :return: identifiant d'objet
+    """
+
+    assert __canevas is not None
+    objet = _locate_object(objet_ou_tag)
+    stats = __img_stats[objet]
+    angle = stats["angle"]
+    hauteur = int(stats["height"] * facteur)
+    largeur = int(stats["width"] * facteur)
+    modifie_image(objet, hauteur, largeur, angle)
 
 
 # Texte
@@ -610,6 +826,7 @@ def texte(
         y: float,
         chaine: str,
         couleur: str = "black",
+        remplissage: str = "black",
         ancrage: Anchor = "nw",
         police: str = "Helvetica",
         taille: int = 24,
@@ -622,7 +839,8 @@ def texte(
     :param float x: abscisse du point d'ancrage
     :param float y: ordonnée du point d'ancrage
     :param str chaine: texte à afficher
-    :param str couleur: couleur de trait (défaut 'black')
+    :param str couleur: couleur de texte (défaut 'black')
+    :param str remplissage: synonyme de `couleur` (défaut 'black')
     :param ancrage: position du point d'ancrage (défaut 'nw')
     :param police: police de caractères (défaut : `Helvetica`)
     :param taille: taille de police (défaut 24)
@@ -630,6 +848,8 @@ def texte(
     :return: identificateur d'objet
     """
     assert __canevas is not None
+    if remplissage and not couleur:
+        couleur = remplissage
     return __canevas.canvas.create_text(
         x, y,
         text=chaine, font=(police, taille),
@@ -655,7 +875,7 @@ def taille_texte(
 
 
 #############################################################################
-# Effacer
+# Utilitaires sur les objets
 #############################################################################
 
 
@@ -680,6 +900,71 @@ def efface(objet_ou_tag: Union[int, str]) -> None:
     __canevas.canvas.delete(objet_ou_tag)
 
 
+@_fenetre_creee
+def type_objet(objet: int) -> Optional[str]:
+    assert __canevas is not None
+    tobj: Optional[str] = __canevas.canvas.type(objet)  # type: ignore
+    if tobj is None:
+        return None
+    if tobj == "oval":
+        ax, ay, bx, by = __canevas.canvas.coords(objet)
+        return "cercle" if bx - ax == by - ay else None
+    return __trans_object_type.get(tobj, None)
+
+
+@_fenetre_creee
+def recuperer_tags(identifiant: int) -> Tuple[str, ...]:
+    """
+    Renvoie les tags d'un objet
+
+    :param identifiant: identifiant de l'objet
+
+    :return tags: Tuple contenant les tags de l'objet. Peut être vide.
+    """
+    assert __canevas is not None
+    assert isinstance(identifiant, int)
+    return __canevas.canvas.gettags(identifiant)
+
+
+@_fenetre_creee
+def modifie(objet_ou_tag: Union[int, str], **options: Dict[str, str]) -> None:
+    assert __canevas is not None
+    if (type_objet(objet_ou_tag) == "texte"
+            and "couleur" in options
+            and "remplissage" not in options):
+        options["remplissage"] = options["couleur"]
+        del options["couleur"]
+    temp = {}
+    for option, valeur in options.items():
+        if option in __trans_options:
+            temp[__trans_options[option]] = valeur
+    __canevas.canvas.itemconfigure(objet_ou_tag, **temp)
+
+
+@_fenetre_creee
+def deplace(objet_ou_tag: Union[int, str],
+            distance_x: Union[int, float],
+            distance_y: Union[int, float]) -> None:
+    assert __canevas is not None
+    __canevas.canvas.move(objet_ou_tag, distance_x, distance_y)
+
+
+@_fenetre_creee
+def couleur(objet: int) -> Optional[str]:
+    assert __canevas is not None
+    if type_objet(objet) == 'texte':
+        option = "fill"
+    else:
+        option = "outline"
+    return __canevas.canvas.itemcget(objet, option=option)  # type: ignore
+
+
+@_fenetre_creee
+def remplissage(objet: int) -> Optional[str]:
+    assert __canevas is not None
+    return __canevas.canvas.itemcget(objet, option="fill")  # type: ignore
+
+
 #############################################################################
 # Utilitaires
 #############################################################################
@@ -697,7 +982,7 @@ def capture_ecran(file: str) -> None:
     Fait une capture d'écran sauvegardée dans ``file.png``.
     """
     assert __canevas is not None
-    __canevas.canvas.postscript(  # type: ignore
+    __canevas.canvas.postscript(
         file=file + ".ps",
         height=__canevas.height,
         width=__canevas.width,
@@ -726,6 +1011,44 @@ def touche_pressee(keysym: str) -> bool:
     """
     assert __canevas is not None
     return keysym in __canevas.pressed_keys
+
+
+@_fenetre_creee
+def repere(grad: int = 50,
+           sous_grad : Union[int, None] = 10,
+           valeurs: bool = True,
+           couleur_grad: str = "#a0a0a0",
+           couleur_sous_grad: str = "#bbbbbb") -> None:
+    """affiche une grille sur la fenêtre.
+    :param grad: distance en pixels entre deux graduations majeures
+    :param sous_grad: distance en pixels entre deux graduations mineures, ou None
+    :param valeurs: True (defaut) pour affichage des valeurs, False sinon
+    :param couleur_grad: couleur des graduations majeures et du texte
+    :param couleur_sous_grad: couleur des graduations mineures
+    """
+    assert __canevas is not None
+    offset = 2
+    __canevas.canvas.create_text(offset, offset, text="0", fill=couleur_grad,
+                                 tags='repere', anchor='nw', font=('Helvetica', 8))
+    pas = grad if sous_grad is None else sous_grad
+    xy = pas
+    xmax = __canevas.width
+    ymax = __canevas.height
+    while xy < max(xmax, ymax) :
+        if xy % grad == 0:
+            couleur = couleur_grad
+            dash : Union[str, int] = ""
+            if valeurs:
+                __canevas.canvas.create_text(xy + offset, 0, text=xy, fill=couleur,
+                                 tags='repere', anchor='nw', font=('Helvetica', 8))
+                __canevas.canvas.create_text(0, xy + offset, text=xy, fill=couleur,
+                                 tags='repere', anchor='nw', font=('Helvetica', 8))
+        else:
+            couleur = couleur_sous_grad
+            dash = 2
+        __canevas.canvas.create_line(xy, 0, xy, ymax, fill=couleur, dash=dash, tags='repere')
+        __canevas.canvas.create_line(0, xy, xmax, xy, fill=couleur, dash=dash, tags='repere')
+        xy += pas
 
 
 #############################################################################
@@ -792,7 +1115,7 @@ def abscisse(ev: Optional[FltkEvent]) -> Optional[int]:
     """
     Renvoie la coordonnée x associé à ``ev`` si elle existe, None sinon.
     """
-    x = attribut(ev, "x")
+    x = _attribut(ev, "x")
     assert isinstance(x, int) or x is None
     return x
 
@@ -801,7 +1124,7 @@ def ordonnee(ev: Optional[FltkEvent]) -> Optional[int]:
     """
     Renvoie la coordonnée y associé à ``ev`` si elle existe, None sinon.
     """
-    y = attribut(ev, "y")
+    y = _attribut(ev, "y")
     assert isinstance(y, int) or y is None
     return y
 
@@ -811,12 +1134,22 @@ def touche(ev: Optional[FltkEvent]) -> str:
     Renvoie une chaîne correspondant à la touche associé à ``ev``,
     si elle existe.
     """
-    keysym = attribut(ev, "keysym")
+    keysym = _attribut(ev, "keysym")
     assert isinstance(keysym, str)
     return keysym
 
 
-def attribut(ev: Optional[FltkEvent], nom: str) -> Any:
+def _attribut(ev: Optional[FltkEvent], nom: str) -> Any:
+    """
+    Renvoie l'attribut `nom` de l'événement `ev`, s'il existe.
+
+    Provoque une erreur ``TypeEvenementNonValide`` si `ev` est `None` ou ne
+    possède pas l'attribut `nom`.
+
+    :param ev: événement fltk
+    :param nom: nom de l'attribut d'événement à renvoyer
+    :return: valeur associée à l'attribut `nom` dans `ev`
+    """
     if ev is None:
         raise TypeEvenementNonValide(
             f"Accès à l'attribut {nom} impossible sur un événement vide"
@@ -831,25 +1164,90 @@ def attribut(ev: Optional[FltkEvent], nom: str) -> Any:
     return attr if attr != "??" else None
 
 
+#############################################################################
+# Informations sur la fenêtre
+#############################################################################
+
+
 @_fenetre_creee
 def abscisse_souris() -> int:
+    """
+    Renvoie l'abscisse actuelle du pointeur de souris par rapport au bord
+    gauche de la zone de dessin.
+    """
     assert __canevas is not None
     return __canevas.canvas.winfo_pointerx() - __canevas.canvas.winfo_rootx()
 
 
 @_fenetre_creee
 def ordonnee_souris() -> int:
+    """
+    Renvoie l'ordonnée actuelle du pointeur de souris par rapport au bord haut
+    de la zone de dessin.
+    """
     assert __canevas is not None
     return __canevas.canvas.winfo_pointery() - __canevas.canvas.winfo_rooty()
 
 
 @_fenetre_creee
 def largeur_fenetre() -> int:
+    """
+    Renvoie la largeur actuelle de la zone de dessin.
+    """
     assert __canevas is not None
     return __canevas.width
 
 
 @_fenetre_creee
 def hauteur_fenetre() -> int:
+    """
+    Renvoie la hauteur actuelle de la zone de dessin.
+    """
     assert __canevas is not None
     return __canevas.height
+
+
+@_fenetre_creee
+def liste_objets_survoles() -> Tuple[int, ...]:
+    """
+    Renvoie l'identifiant de tous les objets actuellement survolés
+    """
+    assert __canevas is not None
+    x, y = abscisse_souris(), ordonnee_souris()
+    overlapping = __canevas.canvas.find_overlapping(x, y, x, y)
+    return overlapping
+
+@_fenetre_creee
+def objet_survole() -> Optional[int]:
+    """
+    Renvoie un objet actuellement survolé
+    """
+    assert __canevas is not None
+    overlapping = liste_objets_survoles()
+    if overlapping:
+        return overlapping[0]
+    return None
+
+
+@_fenetre_creee
+def est_objet_survole(objet_ou_tag : Union[int, str, List[str]]) -> bool:
+    """
+    Renvoie si un objet qui vérifie les conditions d'id ou de tags données est survolé.
+
+    Si objet_ou_tag est un int, check si l'objet avec cet identifiant est survolé.
+    Si c'est un str, check si un objet avec ce tag l'est
+    Si c'est une liste, check si un objet qui remplit toutes ces contraintes l'est
+
+    :param objet_ou_tag: Contrainte(s) sur les objets
+    """
+    assert __canevas is not None
+    if isinstance(objet_ou_tag, int):
+        return objet_ou_tag in liste_objets_survoles()
+    if isinstance(objet_ou_tag, str):
+        tags = tuple([objet_ou_tag])
+        return any(
+            tag_obj in tags for obj in liste_objets_survoles() for tag_obj in recuperer_tags(obj)
+        )
+    if isinstance(objet_ou_tag, list):
+        return all(est_objet_survole(tag) for tag in objet_ou_tag)
+    raise TypeError("Argument de type incorrect")

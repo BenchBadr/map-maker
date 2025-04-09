@@ -32,7 +32,7 @@ def mainloop():
         if grid:
             ui.grid(dim)
         # popup
-        ui.create_popup(['popup', False], "Tile Picker")
+        ui.create_popup(['popup', False], "Tile Picker", max_width=500, max_height=500)
 
     draw()
 

@@ -55,7 +55,7 @@ def none_active() -> bool:
     return True
 
 
-def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_color="#1e1e1e", color="#b8b8b6") -> None:
+def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_color="#1e1e1e", color="#b8b8b6", max_width=float('inf'), max_height=float('inf')) -> None:
     """
     Crée un popup avec un message et un bouton de fermeture. 
 
@@ -77,7 +77,7 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     if not states[key[0]]:
         return
     
-    width, height = width * w, height * l
+    width, height = min(width * w, max_width), min(height * l, max_height)
     c = abs(width - w)//2, abs(height - l)//2
 
     # fltk.rectangle(c[0], c[1], c[0]+width, c[1]+height, remplissage='yellow', epaisseur=0, tag=key[0])

@@ -191,20 +191,28 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
                 button_size,
                 remplissage="#61c554", tag=f"expand_{key[0]}", epaisseur=0)
     
-    p = button_size*.5
-
-    fltk.rectangle(button_x + button_size * 5 + p,
+    if states[key[0]] == 2:
+        p = button_size*.2
+        fltk.polygone([(button_x + 5 * button_size + p, button_y), 
+                       (button_x + 6 * button_size, button_y), 
+                       (button_x + 6 * button_size, button_y + p - button_size)],
+                       remplissage='#61c554', epaisseur=0, tag=f'xexpand_{key[0]}')
+        fltk.polygone([(button_x + 7 * button_size - p, button_y), 
+                       (button_x + 6 * button_size, button_y), 
+                       (button_x + 6 * button_size , button_y + button_size - p)],
+                       remplissage='#61c554', epaisseur=0, tag=f'xexpand_{key[0]}')
+    else:
+        p = button_size*.5
+        fltk.rectangle(button_x + button_size * 5 + p,
                    button_y - button_size + p,
                    button_x + button_size * 7 - p,
                    button_y + button_size - p,
                    remplissage='#61c554', epaisseur=0, tag=f'xexpand_{key[0]}')
-
-    
-    fltk.ligne(button_x + button_size * 5 + p,
-               button_y + button_size - p,
-               button_x + button_size * 7 - p,
-               button_y - button_size + p,
-               couleur='#61c554', epaisseur=2)
+        fltk.ligne(button_x + button_size * 5 + p,
+                button_y + button_size - p,
+                button_x + button_size * 7 - p,
+                button_y - button_size + p,
+                couleur='#61c554', epaisseur=2)
 
 
 def grid_selectors(dim: list[int, int]) -> None:

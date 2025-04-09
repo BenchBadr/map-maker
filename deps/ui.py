@@ -107,18 +107,17 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
         height = l
     else:
         width, height = min(width * w, max_width), min(height * l, max_height)
-    
-    c = abs(width - w)//2, abs(height - l)//2
-    if type(states[key[0]]) == tuple:
-            c = [c[0] + states[key[0]][0], c[1] + states[key[0]][1]]
 
-    # cadre fenetre
-    # fltk.rectangle(c[0], c[1], c[0]+width, c[1]+height, remplissage='yellow', epaisseur=0, tag=key[0])
-
-    # Border radius
     toolbar_color = '#3c3c3c'
     r =  min(min(height*.1, width*.1), 40)
     rc = r // 2
+    
+    c = abs(width - w)//2, abs(height - l)//2
+    if type(states[key[0]]) == tuple:
+            c = [min(w - width, max(c[0] + states[key[0]][0], 0)), min(l - r,max(c[1] + states[key[0]][1], 0))]
+
+    # cadre fenetre
+    # fltk.rectangle(c[0], c[1], c[0]+width, c[1]+height, remplissage='yellow', epaisseur=0, tag=key[0])
 
     def corner(x,y, v, color=bg_color):
         if states[key[0]] == 2:

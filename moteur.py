@@ -88,7 +88,6 @@ def mainloop():
             if dragging:
                 x, y = fltk.abscisse_souris(), fltk.ordonnee_souris()
                 if last_x != None:
-                    print(last_x - x, last_y - y)
                     ui.set_coords(dragged_object, x - last_x, y - last_y)
                     erase_popup(dragged_object)
                     tile_picker()
@@ -107,13 +106,12 @@ def mainloop():
                 last_x, last_y = None, None
             for tag in clicked:
                 keys = tag.split('_')
-                print(clicked)
+
                 if keys[0] == 'drag' and f'expand_{keys[1]}' not in clicked and f'close_{keys[1]}' not in clicked:
                     if not dragging:
                         dragging = True
                         dragged_object = keys[1]
                         last_x, last_y = x, y
-                        print('start drag')
                 if keys[0] == 'close':
                     ui.change_state(keys[1])
                 if keys[0] == 'expand':

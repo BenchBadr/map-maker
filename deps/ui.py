@@ -84,7 +84,7 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
 
     # Border radius
     toolbar_color = '#3c3c3c'
-    r = min(height*.1, width*.1)
+    r = min(min(height*.1, width*.1), 40)
 
     fltk.cercle(c[0]+r, c[1]+r, r, remplissage=toolbar_color, epaisseur=0,
                 tag=key[0])

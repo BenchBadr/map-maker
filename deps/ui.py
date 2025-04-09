@@ -33,6 +33,20 @@ def get_state(key:str) -> bool:
     """
     return states.get(key, False)
 
+def set_fullscreen(key:str) -> None:
+    """
+    Définit l'état d'un component en plein écran.
+
+    Args:
+        key (str): Identifiant unique du component.
+
+    Returns:
+        None
+    """
+    if states[key]!=2:
+        states[key] = 2
+    else:
+        states[key] = 1
 
 def close_active() -> None:
     """
@@ -77,7 +91,11 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     if not states[key[0]]:
         return
     
-    width, height = min(width * w, max_width), min(height * l, max_height)
+    if states[key[0]] == 2:
+        width = w
+        height = l
+    else:
+        width, height = min(width * w, max_width), min(height * l, max_height)
     c = abs(width - w)//2, abs(height - l)//2
 
     # fltk.rectangle(c[0], c[1], c[0]+width, c[1]+height, remplissage='yellow', epaisseur=0, tag=key[0])

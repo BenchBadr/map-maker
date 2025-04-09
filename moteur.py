@@ -86,6 +86,9 @@ def mainloop():
                 if tag.startswith('close_'):
                     key = tag.split('_')[1]
                     ui.change_state(key)
+                if tag.startswith('expand_'):
+                    key = tag.split('_')[1]
+                    ui.set_fullscreen(key)
                 if len(clicked) == 1:
                     if tag.startswith('grid_'):
                         if ui.none_active():

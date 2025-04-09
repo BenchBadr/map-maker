@@ -105,32 +105,31 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     r =  min(min(height*.1, width*.1), 40)
     rc = r // 2
 
+    def corner(x,y, v, color=bg_color):
+        if states[key[0]] == 2:
+            x, y = x + min(0, v[0])*rc,y + min(0, v[1])*rc
+            fltk.rectangle(x,y,x+rc, y+rc, remplissage=color, epaisseur=0, tag=key[0])
+        else:
+            fltk.cercle(x+v[0]*rc, y+v[1]*rc, rc, remplissage=color, epaisseur=0, tag=key[0])
+
     # toolbar left corner
-    fltk.cercle(c[0]+rc, c[1]+rc, rc, remplissage=toolbar_color, epaisseur=0,
-                tag=key[0])
-    
+    corner(c[0], c[1], (1,1),toolbar_color)
+    # bottom left corner
+    corner(c[0], c[1]+height, (1,-1))
+    # bottom right corner
+    corner(c[0] + width, c[1] + height, (-1, -1))
     # toolbar right corner
-    fltk.cercle(c[0]+width - rc, c[1] + rc, rc, remplissage=toolbar_color, epaisseur=0,
-                tag=key[0])
+    corner(c[0]+width, c[1], (-1, 1), toolbar_color)
     
 
     # left border
     fltk.rectangle(c[0], c[1]+rc, c[0]+r, c[1]+(height-rc), remplissage=bg_color, epaisseur=0,
                    tag=key[0])
-
-
-    # bottom left corner
-    fltk.cercle(c[0]+rc, c[1]+height - rc, rc, remplissage=bg_color, epaisseur=0,
-                tag=key[0])
-    
     # bottom border
     fltk.rectangle(c[0]+rc, c[1]+(height - r), c[0]+(width - rc), c[1]+height, remplissage=bg_color, epaisseur=0,
                    tag=key[0])
 
     
-    # bottom right corner
-    fltk.cercle(c[0] + width - rc, c[1] + height - rc, rc, remplissage=bg_color, epaisseur=0,
-                tag=key[0])
     
     # left vertical border
     fltk.rectangle(c[0]+(width - r), c[1]+rc, c[0]+width, c[1]+(height - rc), remplissage=bg_color, epaisseur=0,

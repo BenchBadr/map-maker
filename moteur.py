@@ -47,7 +47,7 @@ def mainloop():
             for info in addons.recuperer_tags(obj):
                 if info!='current':
                     hovered.append(info)
-                    if info.startswith('close_'):
+                    if info.startswith('close_') or info.startswith('expand_'):
                         tag = info.split('_')[1]
                         fltk.modifie('xclose_'+tag, remplissage='#8c1a11')
                         fltk.modifie('xexpand_'+tag, remplissage='#286018')
@@ -57,9 +57,9 @@ def mainloop():
         for tag in hover_effect:
             if tag not in hovered:
                 hover_effect.remove(tag)
-                if tag.startswith('close_'):
+                if tag.startswith('close_') or tag.startswith('expand_'):
                     elem = tag.split('_')[1]
-                    fltk.modifie('x'+tag, remplissage='#ec6a5e')
+                    fltk.modifie('xclose_'+elem, remplissage='#ec6a5e')
                     fltk.modifie('xexpand_'+elem, remplissage='#61c554')
         
         # hover effects

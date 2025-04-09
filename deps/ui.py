@@ -33,6 +33,27 @@ def get_state(key:str) -> bool:
     return states.get(key, False)
 
 
+def close_active() -> None:
+    """
+    Ferme tous les popup actifs.
+    """
+    for key, value in states.items():
+        if value:
+            states[key] = False
+
+def none_active() -> bool:
+    """
+    Vérifie si un popup est actif.
+
+    Returns:
+        bool: True si un popup est actif, sinon False.
+    """
+    for key, value in states.items():
+        if value:
+            return False
+    return True
+
+
 def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_color="#1e1e1e", color="#b8b8b6") -> None:
     """
     Crée un popup avec un message et un bouton de fermeture. 
@@ -58,24 +79,32 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     width, height = width * w, height * l
     c = abs(width - w)//2, abs(height - l)//2
 
-    # fltk.rectangle(c[0], c[1], c[0]+width, c[1]+height, remplissage='yellow', epaisseur=0)
+    # fltk.rectangle(c[0], c[1], c[0]+width, c[1]+height, remplissage='yellow', epaisseur=0, tag=key[0])
     
 
     # Border radius
     toolbar_color = '#3c3c3c'
     r = min(height*.1, width*.1)
 
-    fltk.cercle(c[0]+r, c[1]+r, r, remplissage=toolbar_color, epaisseur=0)
-    fltk.rectangle(c[0], c[1]+r, c[0]+r, c[1]+(height-r), remplissage=bg_color, epaisseur=0)
+    fltk.cercle(c[0]+r, c[1]+r, r, remplissage=toolbar_color, epaisseur=0,
+                tag=key[0])
+    fltk.rectangle(c[0], c[1]+r, c[0]+r, c[1]+(height-r), remplissage=bg_color, epaisseur=0,
+                   tag=key[0])
 
-    fltk.cercle(c[0]+r, c[1]+height - r, r, remplissage=bg_color, epaisseur=0)
-    fltk.rectangle(c[0]+r, c[1]+(height - r), c[0]+(width - r), c[1]+height, remplissage=bg_color, epaisseur=0)
+    fltk.cercle(c[0]+r, c[1]+height - r, r, remplissage=bg_color, epaisseur=0,
+                tag=key[0])
+    fltk.rectangle(c[0]+r, c[1]+(height - r), c[0]+(width - r), c[1]+height, remplissage=bg_color, epaisseur=0,
+                   tag=key[0])
 
-    fltk.cercle(c[0]+width - r, c[1] + r, r, remplissage=toolbar_color, epaisseur=0)
-    fltk.rectangle(c[0]+r, c[1], c[0]+(width - r), c[1]+r, remplissage=toolbar_color, epaisseur=0)
+    fltk.cercle(c[0]+width - r, c[1] + r, r, remplissage=toolbar_color, epaisseur=0,
+                tag=key[0])
+    fltk.rectangle(c[0]+r, c[1], c[0]+(width - r), c[1]+r, remplissage=toolbar_color, epaisseur=0,
+                   tag=key[0])
 
-    fltk.cercle(c[0] + width - r, c[1] + height - r, r, remplissage=bg_color, epaisseur=0)
-    fltk.rectangle(c[0]+(width - r), c[1]+r, c[0]+width, c[1]+(height - r), remplissage=bg_color, epaisseur=0)
+    fltk.cercle(c[0] + width - r, c[1] + height - r, r, remplissage=bg_color, epaisseur=0,
+                tag=key[0])
+    fltk.rectangle(c[0]+(width - r), c[1]+r, c[0]+width, c[1]+(height - r), remplissage=bg_color, epaisseur=0,
+                   tag=key[0])
 
     # Title 
     fltk.texte(c[0] + width // 2, c[1] + r // 2, message, couleur=color, 
@@ -83,7 +112,7 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
                ancrage="center", taille=int(r // 4))
 
     # main area
-    fltk.rectangle(c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r), remplissage=bg_color, epaisseur=0)
+    fltk.rectangle(c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r), remplissage=bg_color, epaisseur=0, tag=key[0])
 
     # Close button
     button_x, button_y = c[0], c[1]

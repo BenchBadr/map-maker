@@ -28,7 +28,7 @@ def mainloop():
         ui.grid_selectors(dim)
 
         # map 
-        fltk.image(w//2, h//2, 'map.png', ancrage='center', hauteur=unit*dim[1], largeur=unit*dim[0], tag='map')
+        fltk.image(w//2, h//2, 'map.png', ancrage='center', hauteur=unit*dim[1], largeur=unit*dim[0])
         if grid:
             ui.grid(dim)
         # popup
@@ -51,17 +51,27 @@ def mainloop():
         elif ev[0] == "ClicGauche":
 
             objects = addons.liste_objets_survoles()
-
+            clicked = []
             for obj in objects:
-                sommet = [info for info in addons.recuperer_tags(obj) if info != 'current']
-                for tag in sommet:
-                    if tag.startswith('close_'):
-                        key = tag.split('_')[1]
-                        ui.change_state(key)
+                for info in addons.recuperer_tags(obj):
+                    if info!='current':
+                        clicked.append(info)
+
+            print(clicked)
+            if len(clicked) == 0:
+                ui.close_active()
+            for tag in clicked:
+                if tag.startswith('close_'):
+                    key = tag.split('_')[1]
+                    ui.change_state(key)
+                if len(clicked) == 1:
                     if tag.startswith('grid_'):
-                        tuile = [int(n) for n in tag.split('_')[1].split('-')]
-                        map.edit_tile(tuile[1], tuile[0], 'SSDH')
-                        ui.change_state('popup')
+                        if ui.none_active():
+                            tuile = [int(n) for n in tag.split('_')[1].split('-')]
+                            map.edit_tile(tuile[1], tuile[0], 'SSDH')
+                            ui.change_state('popup')
+                        else:
+                            ui.close_active()
             fltk.efface_tout()
             draw()
 

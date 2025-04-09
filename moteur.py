@@ -57,7 +57,6 @@ def mainloop():
                     if info!='current':
                         clicked.append(info)
 
-            print(clicked)
             if len(clicked) == 0:
                 ui.close_active()
             for tag in clicked:

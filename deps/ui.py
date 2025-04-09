@@ -81,31 +81,51 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     c = abs(width - w)//2, abs(height - l)//2
 
     # fltk.rectangle(c[0], c[1], c[0]+width, c[1]+height, remplissage='yellow', epaisseur=0, tag=key[0])
-    
 
     # Border radius
     toolbar_color = '#3c3c3c'
-    r = min(min(height*.1, width*.1), 40)
+    r =  min(min(height*.1, width*.1), 40)
+    rc = r // 2
 
-    fltk.cercle(c[0]+r, c[1]+r, r, remplissage=toolbar_color, epaisseur=0,
+    # toolbar left corner
+    fltk.cercle(c[0]+rc, c[1]+rc, rc, remplissage=toolbar_color, epaisseur=0,
                 tag=key[0])
-    fltk.rectangle(c[0], c[1]+r, c[0]+r, c[1]+(height-r), remplissage=bg_color, epaisseur=0,
+    
+    # toolbar right corner
+    fltk.cercle(c[0]+width - rc, c[1] + rc, rc, remplissage=toolbar_color, epaisseur=0,
+                tag=key[0])
+    
+
+    # left border
+    fltk.rectangle(c[0], c[1]+rc, c[0]+r, c[1]+(height-rc), remplissage=bg_color, epaisseur=0,
                    tag=key[0])
 
-    fltk.cercle(c[0]+r, c[1]+height - r, r, remplissage=bg_color, epaisseur=0,
+
+    # bottom left corner
+    fltk.cercle(c[0]+rc, c[1]+height - rc, rc, remplissage=bg_color, epaisseur=0,
                 tag=key[0])
-    fltk.rectangle(c[0]+r, c[1]+(height - r), c[0]+(width - r), c[1]+height, remplissage=bg_color, epaisseur=0,
+    
+    # bottom border
+    fltk.rectangle(c[0]+rc, c[1]+(height - r), c[0]+(width - rc), c[1]+height, remplissage=bg_color, epaisseur=0,
                    tag=key[0])
 
-    fltk.cercle(c[0]+width - r, c[1] + r, r, remplissage=toolbar_color, epaisseur=0,
+    
+    # bottom right corner
+    fltk.cercle(c[0] + width - rc, c[1] + height - rc, rc, remplissage=bg_color, epaisseur=0,
                 tag=key[0])
-    fltk.rectangle(c[0]+r, c[1], c[0]+(width - r), c[1]+r, remplissage=toolbar_color, epaisseur=0,
+    
+    # left vertical border
+    fltk.rectangle(c[0]+(width - r), c[1]+rc, c[0]+width, c[1]+(height - rc), remplissage=bg_color, epaisseur=0,
+                   tag=key[0])
+    
+    # Toolbar
+    fltk.rectangle(c[0]+rc, c[1], c[0]+(width - rc), c[1]+r, remplissage=toolbar_color, epaisseur=0,
+                   tag=key[0])
+    
+    # Complementary toolbar bottom half
+    fltk.rectangle(c[0], c[1]+rc, c[0]+width, c[1]+r, remplissage=toolbar_color, epaisseur=0,
                    tag=key[0])
 
-    fltk.cercle(c[0] + width - r, c[1] + height - r, r, remplissage=bg_color, epaisseur=0,
-                tag=key[0])
-    fltk.rectangle(c[0]+(width - r), c[1]+r, c[0]+width, c[1]+(height - r), remplissage=bg_color, epaisseur=0,
-                   tag=key[0])
 
     # Title 
     fltk.texte(c[0] + width // 2, c[1] + r // 2, message, couleur=color, 
@@ -116,12 +136,57 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     fltk.rectangle(c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r), remplissage=bg_color, epaisseur=0, tag=key[0])
 
     # Close button
-    button_x, button_y = c[0], c[1]
     button_size = r // 4
-    fltk.cercle(button_x + button_size * 3,
-                button_y + button_size * 2, 
+    button_x, button_y = c[0] + button_size * 2 , c[1] + button_size * 2
+
+    # Close button circle
+    fltk.cercle(button_x,
+                button_y, 
                 button_size,
                 remplissage="#ec6a5e", tag=f"close_{key[0]}", epaisseur=0)
+    
+    line_length = button_size // 2
+
+
+    # Close X (perpendicular lines)
+    fltk.ligne(button_x - line_length, 
+               button_y - line_length, 
+               button_x + line_length, 
+               button_y + line_length, couleur="#ec6a5e", tag=f"xclose_{key[0]}", epaisseur=2)
+    
+    fltk.ligne(button_x - line_length, 
+               button_y + line_length, 
+               button_x + line_length, 
+               button_y - line_length, couleur="#ec6a5e", tag=f"xclose_{key[0]}", epaisseur=2)
+    
+   
+    # Reduce blank
+    fltk.cercle(button_x + button_size * 3,
+                button_y, 
+                button_size,
+                remplissage="#5e5f60", epaisseur=0)
+    
+
+    # Expand circle
+    fltk.cercle(button_x + button_size * 6,
+                button_y, 
+                button_size,
+                remplissage="#61c554", tag=f"expand_{key[0]}", epaisseur=0)
+    
+    p = button_size*.5
+
+    fltk.rectangle(button_x + button_size * 5 + p,
+                   button_y - button_size + p,
+                   button_x + button_size * 7 - p,
+                   button_y + button_size - p,
+                   remplissage='#61c554', epaisseur=0, tag=f'xexpand_{key[0]}')
+
+    
+    fltk.ligne(button_x + button_size * 5 + p,
+               button_y + button_size - p,
+               button_x + button_size * 7 - p,
+               button_y - button_size + p,
+               couleur='#61c554', epaisseur=2)
 
 
 def grid_selectors(dim: list[int, int]) -> None:

@@ -8,8 +8,9 @@ def mainloop():
     global w, h, hovered
     w = 600
     h = 600
+    dim_min = 400
     end = False
-    grid = False
+    grid = True
 
     map = Map([['MRPM' for _ in range(10)] for i in range(20)])
     map.dump_img()
@@ -35,6 +36,8 @@ def mainloop():
 
     draw()
 
+    hover_effect = []
+
     while not end:
         fltk.mise_a_jour()
         ev = fltk.donne_ev()
@@ -44,6 +47,20 @@ def mainloop():
             for info in addons.recuperer_tags(obj):
                 if info!='current':
                     hovered.append(info)
+                    if info.startswith('close_'):
+                        tag = info.split('_')[1]
+                        fltk.modifie('xclose_'+tag, remplissage='#8c1a11')
+                        fltk.modifie('xexpand_'+tag, remplissage='#286018')
+                        hover_effect.append(info)
+
+        
+        for tag in hover_effect:
+            if tag not in hovered:
+                hover_effect.remove(tag)
+                if tag.startswith('close_'):
+                    elem = tag.split('_')[1]
+                    fltk.modifie('x'+tag, remplissage='#ec6a5e')
+                    fltk.modifie('xexpand_'+elem, remplissage='#61c554')
         
         # hover effects
         if len(hovered) == 1:

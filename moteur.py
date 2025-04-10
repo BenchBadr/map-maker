@@ -133,6 +133,15 @@ def mainloop():
             fltk.efface_tout()
             draw()
 
+        elif ev[0] == 'Touche':
+            touche = fltk.touche(ev)
+            if touche == 'Down' or touche == 'Up':
+                if touche == 'Down':
+                    map.current_page += 1
+                else:
+                    map.current_page -= 1
+                erase_popup('popup')
+                draw_popup('popup')
 
         elif ev[0] == 'Redimension':
             fltk.efface_tout()

@@ -2,9 +2,11 @@ import PIL.Image
 try:
     from cree_dico import cree_dico
     import modules.fltk as fltk,modules.fltk_addons as addons
+    from tuiles import tuiles_possibles
 except ImportError:
     from deps.cree_dico import cree_dico
     import deps.modules.fltk as fltk,deps.modules.fltk_addons as addons
+    from deps.tuiles_tester import tuiles_possibles
 addons.init(fltk)
 from math import floor, ceil
 
@@ -25,6 +27,8 @@ class Map:
         self.tuiles = cree_dico('deps/tuiles')
         # Pour mémoïser
         self.img = None
+        # used for tile picker
+        self.current_page = 0
 
     def dump_img(self) -> PIL.Image:
         """
@@ -96,19 +100,47 @@ class Map:
                            largeur=unit)
     
     def tuiles_selector(self, key, x, y, x2, y2):
-        s = 150
+        tuiles = 
+        s = 10
         w, h = abs(x - x2), abs(y - y2)
         unit = min(w, h) // 10
         p = unit // 2
+
         n_x = floor((w + p) // (unit + p))
         n_y = floor((h + p) // (unit + p))
+
         pages = ceil(s / (n_x * n_y))
-        current_page = 2
-        count = 1 + (current_page * (n_x * n_y))
-        # effctue un changement de variable pour changer de page
+        self.current_page = min(max(0,self.current_page), pages - 1)
+        current_page = self.current_page
+
+        """
+        Définition pour le changement de variables (comme dans les sommes en maths ou l'on remplace k...)
+        Par du principe que si la page n'est pas la première alors toute les précédentes étaient pleines.
+        Fonctionnement attendu puisque passer à la page suivant avec une page précédente non pleine donne une fenêtre vide.
+        """
+
+        count = (current_page * (n_x * n_y))
+
+        # display scrollbar (only if there is multiple pages)
+        h_scrollbar = abs(y - y2) + p
+        thumb_height = h_scrollbar * (1/pages)
+
+        # Draw the scrollbar accordingly with the current ratio
+        if pages > 1:
+            ## Scrollbar background
+            fltk.rectangle(x2 + p // 2, y + p, x2+p*1.25, y + h_scrollbar, tag=key, remplissage='#444')
+            ## Scrollbar thumb
+            fltk.rectangle(x2 + p // 2, 
+                        y + p + (current_page) * thumb_height, 
+                        x2+p*1.25, 
+                        y + thumb_height * (current_page + 1), 
+                        tag=key, 
+                        remplissage='grey')
+
+        # changement de variables pour afficher une page différente
         for i in range(n_y):
             for j in range(min(n_x, s - count)):
                 c = (x+j*(unit+p), y+(i)*(unit+p)+p)
                 fltk.rectangle(c[0], c[1], c[0]+unit,c[1]+unit, tag=key, remplissage='teal', epaisseur=0)
-                fltk.texte(c[0], c[1], f"{count}", taille=int(w//h)*15)
+                fltk.texte(c[0], c[1], f"{count+1}", taille=int(w//h)*15)
                 count += 1

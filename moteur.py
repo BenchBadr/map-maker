@@ -11,7 +11,11 @@ def mainloop():
     end = False
     grid = True
 
-    map = Map([['MRPM' for _ in range(10)] for i in range(20)])
+    selected_tile = None
+    global tile_memo
+    tile_memo = set()
+
+    map = Map([['MRPM' for _ in range(5)] for i in range(5)])
     map.dump_img()
     
     fltk.cree_fenetre(w, h, redimension=True)
@@ -21,6 +25,7 @@ def mainloop():
             ui.create_popup(['popup', False], 
                             "Tile Picker", 
                             map.tuiles_selector,
+                            args_func={'tile':selected_tile, 'tile_memo':tile_memo},
                             max_width=500, max_height=500)
 
     def draw():
@@ -49,8 +54,12 @@ def mainloop():
     last_x, last_y = None, None
 
     def erase_popup(key):
+        global tile_memo
         for p in ['', 'close_','drag_','expand_','xclose_','xexpand_','blank_']:
             fltk.efface(p+key)
+            for tile in tile_memo:
+                fltk.efface('tile_'+tile)
+            tile_memo = set()
 
 
     while not end:
@@ -129,6 +138,7 @@ def mainloop():
                         if ui.none_active():
                             tuile = [int(n) for n in tag.split('_')[1].split('-')]
                             # map.edit_tile(tuile[1], tuile[0], 'SSDH')
+                            selected_tile = tuile
                             ui.change_state('popup')
             fltk.efface_tout()
             draw()

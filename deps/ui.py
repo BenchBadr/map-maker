@@ -103,6 +103,8 @@ def create_popup(key:list[str, bool], message:str, wrap_func, args_func:dict = {
     Returns:
         None: Displays the popup and waits for the user to close it.
     """
+
+    print(args_func)
     l, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
     if key[0] not in states:
         states[key[0]] = key[1]
@@ -235,7 +237,7 @@ def create_popup(key:list[str, bool], message:str, wrap_func, args_func:dict = {
                 button_y - button_size + p,
                 couleur='#61c554', epaisseur=2,tag='blank_'+key[0])
         
-    wrap_func(key[0],c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r))
+    wrap_func(key[0],c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r), args_func)
 
 
 def grid_selectors(dim: list[int, int]) -> None:

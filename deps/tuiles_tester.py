@@ -44,17 +44,19 @@ def tuiles_possibles(grille:list, i:int, j:int, list_tuiles:list):
     return options
 
 
-def main():
-    # grille de test du fichier donné
-    grille = [['SSSS', 'SSSS', 'SSSS', 'SSSS', None],
-              ['SSSS', 'SHGS', 'SHRH', 'SHFH', None],
-              ['SSSS', None, 'RMPP', 'FMMM', 'PPMM'],
-              ['SSSS', 'GRGS', None, None, None],
-              [None, None, None, None, None]]
-    i = 3
-    j = 2
-    nom_tuile = 'PMMR'
-    print(emplacement_valide(grille, i, j, nom_tuile))
-    print(tuiles_possibles(grille, i, j, tuiles))
+if __name__ == '__main__':
+    def main():
+        # grille de test du fichier donné
+        grille = [['SSSS', 'SSSS', 'SSSS', 'SSSS', None],
+                ['SSSS', 'SHGS', 'SHRH', 'SHFH', None],
+                ['SSSS', None, 'RMPP', 'FMMM', 'PPMM'],
+                ['SSSS', 'GRGS', None, None, None],
+                [None, None, None, None, None]]
+        i = 3
+        j = 2
+        nom_tuile = 'PMMR'
+        print(emplacement_valide(grille, i, j, nom_tuile))
+        print(tuiles_possibles(grille, i, j, tuiles))
 
-main()
+
+    main()

@@ -99,9 +99,21 @@ class Map:
                            hauteur=unit, 
                            largeur=unit)
     
-    def tuiles_selector(self, key, x, y, x2, y2):
-        tuiles = 
-        s = 10
+    def tuiles_selector(self, key, x, y, x2, y2, args_func:dict) -> None:
+        """
+        Dessine la grille de sélection des tuiles.
+
+        Args:
+            key: La clé de la fenêtre
+            (x,y,x2,y2): Les coordonnées de la fenêtre de dessin (du rectangle de la main area)
+            args_func: dictionnaire passant les arguments de la fonction, ici, utilisé pour obtenir le tile selectionné
+        """
+        tile = args_func['tile']
+        tile_memo = args_func['tile_memo']
+
+
+        neigh = [[t, self.tuiles[t]] for t in tuiles_possibles(self.grille, tile[0], tile[1], self.tuiles)]
+        s = len(neigh)
         w, h = abs(x - x2), abs(y - y2)
         unit = min(w, h) // 10
         p = unit // 2
@@ -141,6 +153,6 @@ class Map:
         for i in range(n_y):
             for j in range(min(n_x, s - count)):
                 c = (x+j*(unit+p), y+(i)*(unit+p)+p)
-                fltk.rectangle(c[0], c[1], c[0]+unit,c[1]+unit, tag=key, remplissage='teal', epaisseur=0)
-                fltk.texte(c[0], c[1], f"{count+1}", taille=int(w//h)*15)
+                tile_memo.add(neigh[count][0])
+                fltk.image(c[0], c[1], neigh[count][1], hauteur=int(unit), largeur=int(unit), tag='tile_'+neigh[count][0])
                 count += 1

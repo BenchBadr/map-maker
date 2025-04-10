@@ -152,7 +152,7 @@ class Map:
         # changement de variables pour afficher une page différente
         for i in range(n_y):
             for j in range(min(n_x, s - count)):
-                c = (x+j*(unit+p), y+(i)*(unit+p)+p)
+                c = (x+j*(unit+p), y+(i)*(unit+p)+p*2)
                 tile_memo.add(neigh[count][0])
                 fltk.image(c[0], c[1], neigh[count][1], hauteur=int(unit), largeur=int(unit), tag='tile_'+neigh[count][0])
                 count += 1

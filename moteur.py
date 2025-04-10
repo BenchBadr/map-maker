@@ -17,8 +17,9 @@ def mainloop():
     
     fltk.cree_fenetre(w, h, redimension=True)
 
-    def tile_picker():
-        ui.create_popup(['popup', False], "Tile Picker", max_width=500, max_height=500)
+    def draw_popup(key:str) -> None:
+        if key == 'popup':
+            ui.create_popup(['popup', False], "Tile Picker", max_width=500, max_height=500)
 
     def draw():
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
@@ -35,7 +36,7 @@ def mainloop():
         if grid:
             ui.grid(dim)
         # popup
-        tile_picker()
+        draw_popup('popup')
 
     draw()
 
@@ -90,7 +91,7 @@ def mainloop():
                 if last_x != None:
                     ui.set_coords(dragged_object, x - last_x, y - last_y)
                     erase_popup(dragged_object)
-                    tile_picker()
+                    draw_popup('popup')
             continue
         elif ev[0] =="Quitte":
             fltk.ferme_fenetre()
@@ -100,24 +101,30 @@ def mainloop():
         elif ev[0] == "ClicGauche":
             clicked = set(hovered)
             x, y = fltk.abscisse(ev), fltk.ordonnee(ev)
-            if dragging:
-                dragged_object = None
-                dragging = False
-                last_x, last_y = None, None
             for tag in clicked:
                 keys = tag.split('_')
 
                 if keys[0] == 'drag' and f'expand_{keys[1]}' not in clicked and f'close_{keys[1]}' not in clicked:
+                    print('drag', dragging, dragged_object, last_x, last_y)
                     if not dragging:
                         dragging = True
                         dragged_object = keys[1]
+                        print('rewrite xy')
                         last_x, last_y = x, y
+                    else:
+                        dragged_object = None
+                        dragging = False
+                        last_x, last_y = None, None
+                elif dragging:
+                    dragged_object = None
+                    dragging = False
+                    last_x, last_y = None, None
                 if keys[0] == 'close':
                     ui.change_state(keys[1])
                 if keys[0] == 'expand':
                     ui.set_fullscreen(keys[1])
                 if len(clicked) == 1:
-                    if keys[0] == 'grid':
+                    if keys[0] == 'grid' and not dragging:
                         if ui.none_active():
                             tuile = [int(n) for n in tag.split('_')[1].split('-')]
                             map.edit_tile(tuile[1], tuile[0], 'SSDH')
@@ -128,6 +135,9 @@ def mainloop():
 
         elif ev[0] == 'Redimension':
             fltk.efface_tout()
+            dragged_object = None
+            dragging = False
+            last_x, last_y = None, None
             draw()
 
 

@@ -114,7 +114,7 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
     
     c = abs(width - w)//2, abs(height - l)//2
     if type(states[key[0]]) == tuple:
-            c = [min(w - width, max(c[0] + states[key[0]][0], 0)), min(l - r,max(c[1] + states[key[0]][1], 0))]
+        c = [min(w - width, max(c[0] + states[key[0]][0], 0)), min(l - r,max(c[1] + states[key[0]][1], 0))]
 
     # cadre fenetre
     # fltk.rectangle(c[0], c[1], c[0]+width, c[1]+height, remplissage='yellow', epaisseur=0, tag=key[0])

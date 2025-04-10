@@ -86,6 +86,10 @@ def mainloop():
                     fltk.modifie('xclose_'+elem, remplissage='#ec6a5e')
                     fltk.modifie('xexpand_'+elem, remplissage='#61c554')
         
+        # selected tile
+        if selected_tile != None:
+            ui.draw_hovered(selected_tile[0], selected_tile[1], map.dim, color='green')
+            
         # hover effects
         if len(hovered) == 1:
             tag = hovered[0]
@@ -95,6 +99,7 @@ def mainloop():
                 ui.draw_hovered(tuile[0], tuile[1], map.dim)
         elif len(hovered) == 0:
             fltk.efface('grid_hover')
+
 
         if ev is None:
             # If dragging, update the position of the dragged object
@@ -121,11 +126,14 @@ def mainloop():
                         dragging = True
                         dragged_object = keys[1]
                         last_x, last_y = x, y
+                        print('dragging', dragged_object)
                     else:
                         dragged_object = None
                         dragging = False
                         last_x, last_y = None, None
-                elif dragging:
+                        print('stop drag')
+                elif dragging and dragged_object != None:
+                    print('stop drag')
                     dragged_object = None
                     dragging = False
                     last_x, last_y = None, None
@@ -133,6 +141,9 @@ def mainloop():
                     ui.change_state(keys[1])
                 if keys[0] == 'expand':
                     ui.set_fullscreen(keys[1])
+                if keys[0] == 'tile':
+                    map.edit_tile(selected_tile[1], selected_tile[0], keys[1])
+                    ui.change_state('popup')
                 if len(clicked) == 1:
                     if keys[0] == 'grid' and not dragging:
                         if ui.none_active():

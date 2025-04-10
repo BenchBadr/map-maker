@@ -104,7 +104,6 @@ def create_popup(key:list[str, bool], message:str, wrap_func, args_func:dict = {
         None: Displays the popup and waits for the user to close it.
     """
 
-    print(args_func)
     l, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
     if key[0] not in states:
         states[key[0]] = key[1]
@@ -314,7 +313,11 @@ def draw_hovered(i,j, dim, color='red') -> None:
     base_x = (w - grid_width) // 2
     base_y = (h - grid_height) // 2
 
+    epaisseur = 1
+    if color == 'green':
+        epaisseur = 5
+
     # now use fltk.ligne
-    fltk.rectangle(base_x + j * unit, base_y + i * unit, base_x + (j + 1) * unit, base_y + (i + 1) * unit, couleur=color, tag='grid_hover')
+    fltk.rectangle(base_x + j * unit, base_y + i * unit, base_x + (j + 1) * unit, base_y + (i + 1) * unit, couleur=color, tag='grid_hover', epaisseur=epaisseur)
 
 

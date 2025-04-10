@@ -8,7 +8,6 @@ def mainloop():
     global w, h, hovered
     w = 600
     h = 600
-    dim_min = 400
     end = False
     grid = True
 
@@ -19,7 +18,10 @@ def mainloop():
 
     def draw_popup(key:str) -> None:
         if key == 'popup':
-            ui.create_popup(['popup', False], "Tile Picker", max_width=500, max_height=500)
+            ui.create_popup(['popup', False], 
+                            "Tile Picker", 
+                            map.tuiles_selector,
+                            max_width=500, max_height=500)
 
     def draw():
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
@@ -27,12 +29,13 @@ def mainloop():
         size = min(w, h)
         unit = size//max(dim)
         # window background
-        fltk.rectangle(0, 0, w, h, remplissage="white")
+        fltk.rectangle(0, 0, w, h, remplissage="grey")
         # grid
         ui.grid_selectors(dim)
 
         # map 
-        fltk.image(w//2, h//2, 'map.png', ancrage='center', hauteur=unit*dim[1], largeur=unit*dim[0])
+        map.display_map(unit, (w)//2, (h)//2)
+        # fltk.image(w//2, h//2, 'map.png', ancrage='center', hauteur=unit*dim[1], largeur=unit*dim[0])
         if grid:
             ui.grid(dim)
         # popup
@@ -105,11 +108,9 @@ def mainloop():
                 keys = tag.split('_')
 
                 if keys[0] == 'drag' and f'expand_{keys[1]}' not in clicked and f'close_{keys[1]}' not in clicked:
-                    print('drag', dragging, dragged_object, last_x, last_y)
                     if not dragging:
                         dragging = True
                         dragged_object = keys[1]
-                        print('rewrite xy')
                         last_x, last_y = x, y
                     else:
                         dragged_object = None
@@ -127,7 +128,7 @@ def mainloop():
                     if keys[0] == 'grid' and not dragging:
                         if ui.none_active():
                             tuile = [int(n) for n in tag.split('_')[1].split('-')]
-                            map.edit_tile(tuile[1], tuile[0], 'SSDH')
+                            # map.edit_tile(tuile[1], tuile[0], 'SSDH')
                             ui.change_state('popup')
             fltk.efface_tout()
             draw()

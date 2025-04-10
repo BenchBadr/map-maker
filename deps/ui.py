@@ -80,17 +80,25 @@ def set_coords(key:str, x:int,y:int) -> None:
     states[key] = (x,y)
 
 
-def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_color="#1e1e1e", color="#b8b8b6", max_width=float('inf'), max_height=float('inf')) -> None:
+def create_popup(key:list[str, bool], message:str, wrap_func, args_func:dict = {}, width=0.8, height=0.8, bg_color="#1e1e1e", color="#b8b8b6", max_width=float('inf'), max_height=float('inf')) -> None:
     """
     Crée un popup avec un message et un bouton de fermeture. 
 
     Args:
         key (list[str, bool]): Identifiant unique du popup. Nécessaire pour le fermer.
         message (str): Message du popup
+        wrap_func (func) : fonction d'affichage du contenu du popup, passe (x,y)
+            args_func (dict) : arguments passés à wrap_func dans un dictionnaire, à défaut, vide.
+
+
+        # Apparence
+
         width (int): largeur du popup.
         height (int): hauteur du popup.
         bg_color (str): Couleur du background du popup.
         color (str): Couleur du texte.
+        max_width (int) : majore la largeur (à défaut, infini)
+        max_height (int) : majore la hauteur (à défaut, infini)
 
     Returns:
         None: Displays the popup and waits for the user to close it.
@@ -226,6 +234,8 @@ def create_popup(key:list[str, bool], message:str, width=0.8, height=0.8, bg_col
                 button_x + button_size * 7 - p,
                 button_y - button_size + p,
                 couleur='#61c554', epaisseur=2,tag='blank_'+key[0])
+        
+    wrap_func(key[0],c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r))
 
 
 def grid_selectors(dim: list[int, int]) -> None:
@@ -304,3 +314,5 @@ def draw_hovered(i,j, dim, color='red') -> None:
 
     # now use fltk.ligne
     fltk.rectangle(base_x + j * unit, base_y + i * unit, base_x + (j + 1) * unit, base_y + (i + 1) * unit, couleur=color, tag='grid_hover')
+
+

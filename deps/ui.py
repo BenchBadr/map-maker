@@ -70,7 +70,8 @@ def none_active() -> bool:
 
 def set_coords(key:str, x:int,y:int) -> None:
     """
-    Quand non fermé et non fullscreen, déplace le popup à la position (x,y).
+    Quand non fermé, déplace le popup à la position (x,y).
+    Ignore le cas fullscreen, car automatiquement quitté par changement du state.
 
     Args:
         key (str): Identifiant unique du component.
@@ -78,6 +79,16 @@ def set_coords(key:str, x:int,y:int) -> None:
         y (int): Coordonnée y.
     """
     states[key] = (x,y)
+
+def ratioize_coords(key, ratio:float) -> None:
+    """
+    Adapte la position du popup à la taille de la fenêtre en cas de redimension.
+    Args:
+        key (str): Identifiant unique du component.
+        ratio (float): Ratio de redimensionnement.
+    """
+    if type(states[key]) != bool:
+        states[key] = (states[key][0] * ratio[0], states[key][1] * ratio[1])
 
 
 def create_popup(key:list[str, bool], message:str, wrap_func, args_func:dict = {}, width=0.8, height=0.8, bg_color="#1e1e1e", color="#b8b8b6", max_width=float('inf'), max_height=float('inf')) -> None:

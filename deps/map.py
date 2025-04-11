@@ -111,8 +111,8 @@ class Map:
         tile = args_func['tile']
         tile_memo = args_func['tile_memo']
 
-
-        neigh = [[t, self.tuiles[t]] for t in tuiles_possibles(self.grille, tile[0], tile[1], self.tuiles)]
+        neigh = [[key, value] for key, value in self.tuiles.items() if key != tile]
+        # neigh = [[t, self.tuiles[t]] for t in tuiles_possibles(self.grille, tile[0], tile[1], self.tuiles)]
         s = len(neigh)
         w, h = abs(x - x2), abs(y - y2)
         unit = min(w, h) // 10

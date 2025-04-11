@@ -9,14 +9,15 @@ def mainloop():
     w = 600
     h = 600
     end = False
-    grid = True
+    grid = False
 
     selected_tile = None
     global tile_memo
     tile_memo = set()
 
-    map = Map([['MRPM' for _ in range(5)] for i in range(5)])
+    map = Map([['MRPM' for _ in range(10)] for i in range(10)])
     map.dump_img()
+
     
     fltk.cree_fenetre(w, h, redimension=True)
 
@@ -163,8 +164,9 @@ def mainloop():
         elif ev[0] == 'Redimension':
             fltk.efface_tout()
             dragged_object = None
-            dragging = False
             last_x, last_y = None, None
+
+            ui.set_coords('popup',0,0)
             draw()
 
 

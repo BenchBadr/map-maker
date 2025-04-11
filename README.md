@@ -66,3 +66,7 @@ La première approche a été de cliquer sur la toolbar supérieure (celle conte
 Les déplacements étaient définis avec le vecteur entre les coordonnées actuelles et précédentes de la souris.
 
 Un événement `LacheGauche` a été ceéé, utilisant l'événement `<ButtonRelease-1>`
+
+# Ouverture
+
+Espérance de vie

@@ -9,7 +9,7 @@ def mainloop():
     w = 600
     h = 600
     end = False
-    grid = False
+    grid = True
 
     selected_tile = None
     global tile_memo
@@ -165,12 +165,12 @@ def mainloop():
             fltk.efface_tout()
             dragged_object = None
             last_x, last_y = None, None
-
-            ui.set_coords('popup',0,0)
+            if ui.get_state('popup'):
+                ui.set_coords('popup',0,0)
             draw()
 
 
 if __name__ == '__main__':
     mainloop()
 
-# TODO : FIX DRAG AND DROP FULLSCREEN
+

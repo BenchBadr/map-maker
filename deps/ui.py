@@ -80,16 +80,6 @@ def set_coords(key:str, x:int,y:int) -> None:
     """
     states[key] = (x,y)
 
-def ratioize_coords(key, ratio:float) -> None:
-    """
-    Adapte la position du popup à la taille de la fenêtre en cas de redimension.
-    Args:
-        key (str): Identifiant unique du component.
-        ratio (float): Ratio de redimensionnement.
-    """
-    if type(states[key]) != bool:
-        states[key] = (states[key][0] * ratio[0], states[key][1] * ratio[1])
-
 
 def create_popup(key:list[str, bool], message:str, wrap_func, args_func:dict = {}, width=0.8, height=0.8, bg_color="#1e1e1e", color="#b8b8b6", max_width=float('inf'), max_height=float('inf')) -> None:
     """
@@ -306,9 +296,10 @@ def grid(dim: list[int, int], color: str = 'blue') -> None:
 
     # now use fltk.ligne
     for i in range(dim[1] + 1):
-        fltk.ligne(base_x, base_y + i * unit, base_x + grid_width, base_y + i * unit, couleur=color)
-    for j in range(dim[0] + 1):
-        fltk.ligne(base_x + j * unit, base_y, base_x + j * unit, base_y + grid_height, couleur=color)
+        fltk.ligne(0, base_y + i * unit, w, base_y + i * unit, couleur=color)
+    for j in range(0, w // unit):
+        idx = j - base_x // unit
+        fltk.ligne(base_x + idx * unit, base_y, base_x + idx * unit, base_y + grid_height, couleur=color)
 
 def draw_hovered(i,j, dim, color='red') -> None:
     """

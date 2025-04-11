@@ -134,6 +134,7 @@ def mainloop():
                             last_x, last_y = x, y
                 if keys[0] == 'close':
                     ui.change_state(keys[1])
+                    selected_tile = None
                 if keys[0] == 'expand':
                     ui.set_fullscreen(keys[1])
                 if keys[0] == 'tile':

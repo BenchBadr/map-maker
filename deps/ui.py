@@ -315,10 +315,12 @@ def draw_hovered(i,j, dim, color='red') -> None:
     base_y = (h - grid_height) // 2
 
     epaisseur = 1
+    tag = 'grid_hover'
     if color == 'green':
         epaisseur = 5
+        tag = 'sel_tile'
 
     # now use fltk.ligne
-    fltk.rectangle(base_x + j * unit, base_y + i * unit, base_x + (j + 1) * unit, base_y + (i + 1) * unit, couleur=color, tag='grid_hover', epaisseur=epaisseur)
+    fltk.rectangle(base_x + j * unit, base_y + i * unit, base_x + (j + 1) * unit, base_y + (i + 1) * unit, couleur=color, tag=tag, epaisseur=epaisseur)
 
 

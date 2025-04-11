@@ -113,12 +113,13 @@ class CustomCanvas:
         "ClicGauche": "<Button-1>",
         "ClicMilieu": "<Button-2>",
         "ClicDroit": "<Button-2>" if _on_osx else "<Button-3>",
+        "LacheGauche":'<ButtonRelease-1>',
         "Deplacement": "<Motion>",
         "Touche": "<Key>",
         "Redimension": "<Configure>",
     }
 
-    _default_ev = ["ClicGauche", "ClicDroit", "Touche"]
+    _default_ev = ["ClicGauche", "ClicDroit", 'LacheGauche', "Touche"]
 
     def __init__(
             self,

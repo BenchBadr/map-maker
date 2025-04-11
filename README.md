@@ -7,7 +7,7 @@ marp: true
 - hello
 
 ---
-# Tâche 1 - Création du dictionnaire
+# Création du dictionnaire
 
 
 > La première tâche consiste à parcourir les fichiers fournis pour récupérer toutes les tuiles disponibles.
@@ -40,8 +40,29 @@ def cree_dico(path:str) -> dict:
 
 En premier lieu, on écrie `cree_dico` de la façon suivante.
 
-# Tâche 2 - Moteur et placement des tuiles
+# Moteur et placement des tuiles
 
 > La deuxième tâche du projet consiste à programmer la logique interne de MapMaker (le moteur),
 c’est-à-dire la partie qui permet de représenter l’état de la carte dans des structures de données
 appropriées, et de les modifier durant l’utilisation du programme.
+
+
+## Fenêtre Apple
+
+Fonctionnalités implémentées:
+- Drag and drop
+- Fullscreen
+- Close
+Entièrement responsive. 
+
+
+## Modification `fltk`
+
+Après création de notre fenêtre avec `ui.py`, il est cependant impossible de la déplacer en imitant un comportement de drag, car simplement impossible avec `fltk`. 
+
+
+La première approche a été de cliquer sur la toolbar supérieure (celle contenant les boutons d'actions fermer / maximiser) puis un deuxième clic permettait d'arrêter le redimensionement. Cependant dû au temps de dessin de la fenêtre, un décalage entre la souris et cette dernière subvenait.
+
+Les déplacements étaient définis avec le vecteur entre les coordonnées actuelles et précédentes de la souris.
+
+Un événement `LacheGauche` a été ceéé, utilisant l'événement `<ButtonRelease-1>`

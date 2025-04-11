@@ -301,7 +301,8 @@ def grid(dim: list[int, int], color: str = 'blue') -> None:
 
 def draw_hovered(i,j, dim, color='red') -> None:
     """
-    Dessine un carré de couleur différente sur la case (i,j) si survolée.
+    Dessine un carré de couleur différente sur la case (i,j)
+    Ne vérifie pas si survolée, donc peut être utilisé pour dessiner des cases manuellement.
     """
     w, h = fltk.largeur_fenetre(), fltk.hauteur_fenetre()
     size = min(w, h)

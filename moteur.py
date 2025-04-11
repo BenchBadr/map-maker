@@ -43,6 +43,10 @@ def mainloop():
         # fltk.image(w//2, h//2, 'map.png', ancrage='center', hauteur=unit*dim[1], largeur=unit*dim[0])
         if grid:
             ui.grid(dim)
+
+        # selected tile
+        if selected_tile != None:
+            ui.draw_hovered(selected_tile[0], selected_tile[1], map.dim, color='green')
         # popup
         draw_popup('popup')
 
@@ -86,9 +90,6 @@ def mainloop():
                     fltk.modifie('xclose_'+elem, remplissage='#ec6a5e')
                     fltk.modifie('xexpand_'+elem, remplissage='#61c554')
         
-        # selected tile
-        if selected_tile != None:
-            ui.draw_hovered(selected_tile[0], selected_tile[1], map.dim, color='green')
             
         # hover effects
         if len(hovered) == 1:
@@ -114,7 +115,11 @@ def mainloop():
             fltk.ferme_fenetre()
             end = True
             break
-
+        elif ev[0] == 'LacheGauche':
+            if dragging:
+                dragged_object = None
+                dragging = False
+                # last_x, last_y = None, None
         elif ev[0] == "ClicGauche":
             clicked = set(hovered)
             x, y = fltk.abscisse(ev), fltk.ordonnee(ev)
@@ -125,25 +130,15 @@ def mainloop():
                     if not dragging:
                         dragging = True
                         dragged_object = keys[1]
-                        last_x, last_y = x, y
-                        print('dragging', dragged_object)
-                    else:
-                        dragged_object = None
-                        dragging = False
-                        last_x, last_y = None, None
-                        print('stop drag')
-                elif dragging and dragged_object != None:
-                    print('stop drag')
-                    dragged_object = None
-                    dragging = False
-                    last_x, last_y = None, None
+                        if last_x == None:
+                            last_x, last_y = x, y
                 if keys[0] == 'close':
                     ui.change_state(keys[1])
                 if keys[0] == 'expand':
                     ui.set_fullscreen(keys[1])
                 if keys[0] == 'tile':
                     map.edit_tile(selected_tile[1], selected_tile[0], keys[1])
-                    ui.change_state('popup')
+                    # ui.change_state('popup')
                 if len(clicked) == 1:
                     if keys[0] == 'grid' and not dragging:
                         if ui.none_active():
@@ -174,3 +169,5 @@ def mainloop():
 
 if __name__ == '__main__':
     mainloop()
+
+# TODO : FIX DRAG AND DROP FULLSCREEN

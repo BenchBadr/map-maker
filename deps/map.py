@@ -88,17 +88,18 @@ class Map:
         self.grille[i][j] = tuile
         self.dump_img()
 
-    def display_map(self, unit, c0, c1) -> None:
-        c0 = c0 - (unit*self.dim[0]) // 2 +unit // 2
-        c1 = c1 - (unit*self.dim[1]) // 2 + unit // 2
+    def display_map(self, unit, c0, c1, zoom = 1) -> None:
+        unit = unit * zoom
+        c0 = floor(c0 - (unit*self.dim[0]) // 2 +unit // 2)
+        c1 = floor(c1 - (unit*self.dim[1]) // 2 + unit // 2)
         for i in range(self.dim[0]):
             for j in range(self.dim[1]):
                 if self.grille[i][j] is not None:
                     fltk.image(c0+i*unit, 
                             c1+j*unit, 
                             self.tuiles[self.grille[i][j]], 
-                            hauteur=unit, 
-                            largeur=unit)
+                            hauteur=floor(unit), 
+                            largeur=floor(unit))
                 else:
                     fltk.rectangle(c0+(i-1/2)*unit, 
                             c1+(j - 1/2)*unit, 

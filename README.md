@@ -67,6 +67,26 @@ Les déplacements étaient définis avec le vecteur entre les coordonnées actue
 
 Un événement `LacheGauche` a été ceéé, utilisant l'événement `<ButtonRelease-1>`
 
+# Keyboard
+- `Up`
+    - Déplacement map
+    - Scroll dans fenêtre
+- `Down`
+    - Déplacement map
+    - Scroll dans fenêtre
+- `Left`
+    - Déplacement map
+- `Right`
+    - Déplacement map
+- `0`
+    - Réinitialise le zoom
+- `-`
+    - Zoom - 
+- `+`
+    - Zoom +
+- `1` 
+    - Toggle grid
+
 # Ouverture
 
 Espérance de vie

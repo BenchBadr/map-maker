@@ -11,7 +11,7 @@ def mainloop():
     end = False
     grid = True
 
-    zoom = .5
+    zoom = 1
 
     selected_tile = None
     global tile_memo
@@ -39,17 +39,17 @@ def mainloop():
         # window background
         fltk.rectangle(0, 0, w, h, remplissage="grey")
         # grid
-        ui.grid_selectors(dim)
+        ui.grid_selectors(dim, zoom = zoom)
 
         # map 
-        map.display_map(unit, (w)//2, (h)//2)
+        map.display_map(unit, (w)//2, (h)//2, zoom=zoom)
         # fltk.image(w//2, h//2, 'map.png', ancrage='center', hauteur=unit*dim[1], largeur=unit*dim[0])
         if grid:
             ui.grid(dim, zoom=zoom)
 
         # selected tile
         if selected_tile != None:
-            ui.draw_hovered(selected_tile[0], selected_tile[1], map.dim, color='green')
+            ui.draw_hovered(selected_tile[0], selected_tile[1], map.dim, color='green', zoom = zoom)
         # popup
         draw_popup('popup')
 
@@ -100,7 +100,7 @@ def mainloop():
             if ui.none_active() and tag.startswith('grid_'):
                 fltk.efface('grid_hover')
                 tuile = [int(n) for n in tag.split('_')[1].split('-')]
-                ui.draw_hovered(tuile[0], tuile[1], map.dim)
+                ui.draw_hovered(tuile[0], tuile[1], map.dim, zoom = zoom)
         elif len(hovered) == 0:
             fltk.efface('grid_hover')
 
@@ -169,6 +169,22 @@ def mainloop():
 
         elif ev[0] == 'Touche':
             touche = fltk.touche(ev)
+            if touche == '-':
+                zoom = max(zoom - 0.1, 0.1)
+                fltk.efface_tout()
+                draw()
+            elif touche == '+' or touche == '=':
+                zoom = min(zoom + 0.1, 2)
+                fltk.efface_tout()
+                draw()
+            elif touche == '0':
+                zoom = 1
+                fltk.efface_tout()
+                draw()
+            elif touche == '1':
+                grid = not grid
+                fltk.efface_tout()
+                draw()
             if touche == 'Down' or touche == 'Up':
                 if touche == 'Down':
                     map.current_page += 1

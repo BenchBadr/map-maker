@@ -240,7 +240,7 @@ def create_popup(key:list[str, bool], message:str, wrap_func, args_func:dict = {
     wrap_func(key[0],c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r), args_func)
 
 
-def grid_selectors(dim: list[int, int]) -> None:
+def grid_selectors(dim: list[int, int], zoom = 1) -> None:
     """
     Crée une grille sur la fenêtre.
     Cette grille est invisible et permet seulement de traiter les slicks sur les cases.
@@ -254,7 +254,7 @@ def grid_selectors(dim: list[int, int]) -> None:
     """
     w, h = fltk.largeur_fenetre(), fltk.hauteur_fenetre()
     size = min(w, h)
-    unit = size // max(dim)
+    unit = floor(size // max(dim) * zoom)
 
     grid_width = dim[0] * unit
     grid_height = dim[1] * unit
@@ -286,7 +286,7 @@ def grid(dim: list[int, int], zoom:float = 1, color: str = 'blue') -> None:
     """
     w, h = fltk.largeur_fenetre(), fltk.hauteur_fenetre()
     size = min(w, h)
-    unit = floor(size // max(dim))
+    unit = floor((size // max(dim)) * zoom)
 
     grid_width = dim[0] * unit
     grid_height = dim[1] * unit
@@ -302,14 +302,14 @@ def grid(dim: list[int, int], zoom:float = 1, color: str = 'blue') -> None:
         idx = j
         fltk.ligne(base_x + idx * unit, 0, base_x + idx * unit, h, couleur=color)
 
-def draw_hovered(i,j, dim, color='red') -> None:
+def draw_hovered(i,j, dim, color='red', zoom = 1) -> None:
     """
     Dessine un carré de couleur différente sur la case (i,j)
     Ne vérifie pas si survolée, donc peut être utilisé pour dessiner des cases manuellement.
     """
     w, h = fltk.largeur_fenetre(), fltk.hauteur_fenetre()
     size = min(w, h)
-    unit = size // max(dim)
+    unit = floor(size // max(dim) * zoom)
 
     grid_width = dim[0] * unit
     grid_height = dim[1] * unit

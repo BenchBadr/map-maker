@@ -1,7 +1,7 @@
 import deps.modules.fltk as fltk
 import deps.modules.fltk_addons as addons
 addons.init(fltk)
-from math import floor
+from math import floor, ceil
 
 # États des components : visibles ou invisibles
 states = {
@@ -264,13 +264,13 @@ def grid_selectors(dim: list[int, int], zoom = 1, deplacement_map = (0,0)) -> No
 
     for i in range(dim[1]):
         for j in range(dim[0]):
-                i_, j_ = i + deplacement_map[0], j + deplacement_map[1]
+                i_, j_ = i, j
                 fltk.rectangle(base_x + (j_) * unit, 
                                base_y + i_ * unit, 
                                base_x + (j_ + 1) * unit, 
                                base_y + (i_ + 1) * unit, 
                                epaisseur=1, 
-                               remplissage='white',
+                               remplissage='grey',
                                tag=f"grid_{i}-{j}")
                 
 def grid(dim: list[int, int], zoom:float = 1, color: str = 'blue') -> None:
@@ -303,7 +303,7 @@ def grid(dim: list[int, int], zoom:float = 1, color: str = 'blue') -> None:
         idx = j
         fltk.ligne(base_x + idx * unit, 0, base_x + idx * unit, h, couleur=color)
 
-def draw_hovered(i,j, dim, color='red', zoom = 1) -> None:
+def draw_hovered(i,j, dim, color='red', zoom = 1, deplacement_map = (0,0)) -> None:
     """
     Dessine un carré de couleur différente sur la case (i,j)
     Ne vérifie pas si survolée, donc peut être utilisé pour dessiner des cases manuellement.
@@ -319,7 +319,7 @@ def draw_hovered(i,j, dim, color='red', zoom = 1) -> None:
     base_y = (h - grid_height) // 2
 
     epaisseur = 1
-    tag = 'grid_hover'
+    tag = 'xgrid_hover'
     if color == 'green':
         epaisseur = 5
         tag = 'sel_tile'

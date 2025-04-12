@@ -13,6 +13,11 @@ def mainloop():
     grid = True
 
     zoom = 1
+
+    MAX_ZOOM = 4
+    MIN_ZOOM = 0.1
+    ZOOM_STEP = 0.1
+
     deplacement_map = (0,0)
 
     selected_tile = None
@@ -39,7 +44,7 @@ def mainloop():
         size = min(w, h)
         unit = size//max(dim)
         # window background
-        fltk.rectangle(0, 0, w, h, remplissage="grey")
+        fltk.rectangle(0, 0, w, h, remplissage="black")
         # grid
         ui.grid_selectors(dim, zoom = zoom, deplacement_map = deplacement_map)
 
@@ -51,7 +56,7 @@ def mainloop():
 
         # selected tile
         if selected_tile != None:
-            ui.draw_hovered(selected_tile[0], selected_tile[1], map.dim, color='green', zoom = zoom)
+            ui.draw_hovered(selected_tile[0], selected_tile[1], map.dim, color='green', zoom = zoom, deplacement_map=deplacement_map)
         # popup
         draw_popup('popup')
 
@@ -100,11 +105,11 @@ def mainloop():
         if len(hovered) == 1:
             tag = hovered[0]
             if ui.none_active() and tag.startswith('grid_'):
-                fltk.efface('grid_hover')
+                fltk.efface('xgrid_hover')
                 tuile = [int(n) for n in tag.split('_')[1].split('-')]
-                ui.draw_hovered(tuile[0], tuile[1], map.dim, zoom = zoom)
+                ui.draw_hovered(tuile[0], tuile[1], map.dim, zoom = zoom, deplacement_map = deplacement_map)
         elif len(hovered) == 0:
-            fltk.efface('grid_hover')
+            fltk.efface('xgrid_hover')
 
 
         if ev is None:
@@ -132,7 +137,6 @@ def mainloop():
                 keys = tag.split('_')
                 if keys[0] == 'grid':
                     tuile = [int(n) for n in tag.split('_')[1].split('-')]
-                    print('tuile', tuile)
                     map.edit_tile(tuile[1], tuile[0], None)
                     # ui.change_state('popup')
                     fltk.efface_tout()
@@ -174,13 +178,13 @@ def mainloop():
 
             # Dézoom
             if touche == '-':
-                zoom = max(zoom - 0.1, 0.1)
+                zoom = max(zoom - ZOOM_STEP, MIN_ZOOM)
                 fltk.efface_tout()
                 draw()
 
             # Zoom
             elif touche == '+' or touche == '=':
-                zoom = min(zoom + 0.1, 2)
+                zoom = min(zoom + ZOOM_STEP, MAX_ZOOM)
                 fltk.efface_tout()
                 draw()
 
@@ -216,11 +220,11 @@ def mainloop():
                 if ui.none_active():
                     # Haut
                     if touche == 'Up':
-                        deplacement_map = (deplacement_map[0], deplacement_map[1] + unit)
+                        deplacement_map = (deplacement_map[0], deplacement_map[1] + 1)
 
                     # Bas
                     if touche == 'Down':
-                        deplacement_map = (deplacement_map[0], deplacement_map[1] - unit)
+                        deplacement_map = (deplacement_map[0], deplacement_map[1] - 1)
                 fltk.efface_tout()
                 draw()
 

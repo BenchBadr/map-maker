@@ -264,7 +264,7 @@ def grid_selectors(dim: list[int, int], zoom = 1, deplacement_map = (0,0)) -> No
 
     for i in range(dim[1]):
         for j in range(dim[0]):
-                i_, j_ = i, j
+                i_, j_ = i + deplacement_map[1], j + deplacement_map[0]
                 fltk.rectangle(base_x + (j_) * unit, 
                                base_y + i_ * unit, 
                                base_x + (j_ + 1) * unit, 
@@ -325,6 +325,7 @@ def draw_hovered(i,j, dim, color='red', zoom = 1, deplacement_map = (0,0)) -> No
         tag = 'sel_tile'
 
     # now use fltk.ligne
-    fltk.rectangle(base_x + j * unit, base_y + i * unit, base_x + (j + 1) * unit, base_y + (i + 1) * unit, couleur=color, tag=tag, epaisseur=epaisseur)
+    i_, j_ = i + deplacement_map[1], j + deplacement_map[0]
+    fltk.rectangle(base_x + (j_) * unit, base_y + i_ * unit, base_x + (j_ + 1) * unit, base_y + (i_ + 1) * unit, couleur=color, tag=tag, epaisseur=epaisseur)
 
 

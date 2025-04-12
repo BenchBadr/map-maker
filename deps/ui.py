@@ -240,7 +240,7 @@ def create_popup(key:list[str, bool], message:str, wrap_func, args_func:dict = {
     wrap_func(key[0],c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r), args_func)
 
 
-def grid_selectors(dim: list[int, int], zoom = 1) -> None:
+def grid_selectors(dim: list[int, int], zoom = 1, deplacement_map = (0,0)) -> None:
     """
     Crée une grille sur la fenêtre.
     Cette grille est invisible et permet seulement de traiter les slicks sur les cases.
@@ -264,10 +264,11 @@ def grid_selectors(dim: list[int, int], zoom = 1) -> None:
 
     for i in range(dim[1]):
         for j in range(dim[0]):
-                fltk.rectangle(base_x + j * unit, 
-                               base_y + i * unit, 
-                               base_x + (j + 1) * unit, 
-                               base_y + (i + 1) * unit, 
+                i_, j_ = i + deplacement_map[0], j + deplacement_map[1]
+                fltk.rectangle(base_x + (j_) * unit, 
+                               base_y + i_ * unit, 
+                               base_x + (j_ + 1) * unit, 
+                               base_y + (i_ + 1) * unit, 
                                epaisseur=1, 
                                remplissage='white',
                                tag=f"grid_{i}-{j}")

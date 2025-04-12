@@ -88,10 +88,10 @@ class Map:
         self.grille[i][j] = tuile
         self.dump_img()
 
-    def display_map(self, unit, c0, c1, zoom = 1) -> None:
+    def display_map(self, unit, c0, c1, zoom = 1, deplacement_map = (0,0)) -> None:
         unit = unit * zoom
-        c0 = floor(c0 - (unit*self.dim[0]) // 2 +unit // 2)
-        c1 = floor(c1 - (unit*self.dim[1]) // 2 + unit // 2)
+        c0 = floor(c0 - (unit*self.dim[0]) // 2 +unit // 2) + deplacement_map[0]
+        c1 = floor(c1 - (unit*self.dim[1]) // 2 + unit // 2) + deplacement_map[1]
         for i in range(self.dim[0]):
             for j in range(self.dim[1]):
                 if self.grille[i][j] is not None:

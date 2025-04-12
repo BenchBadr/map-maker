@@ -84,6 +84,7 @@ Un événement `LacheGauche` a été ceéé, utilisant l'événement `<ButtonRel
     - Zoom - 
 - `+`
     - Zoom +
+    - If not zoomed, reinitialize position
 - `1` 
     - Toggle grid
 

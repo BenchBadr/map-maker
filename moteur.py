@@ -2,6 +2,7 @@ import deps.modules.fltk as fltk,deps.modules.fltk_addons as addons
 from deps.map import Map
 import deps.ui as ui
 addons.init(fltk)
+from math import floor
 
 def mainloop():
     #Variables à définir
@@ -12,6 +13,7 @@ def mainloop():
     grid = True
 
     zoom = 1
+    deplacement_map = (0,0)
 
     selected_tile = None
     global tile_memo
@@ -39,10 +41,10 @@ def mainloop():
         # window background
         fltk.rectangle(0, 0, w, h, remplissage="grey")
         # grid
-        ui.grid_selectors(dim, zoom = zoom)
+        ui.grid_selectors(dim, zoom = zoom, deplacement_map = deplacement_map)
 
         # map 
-        map.display_map(unit, (w)//2, (h)//2, zoom=zoom)
+        map.display_map(unit, (w)//2, (h)//2, zoom=zoom, deplacement_map=deplacement_map)
         # fltk.image(w//2, h//2, 'map.png', ancrage='center', hauteur=unit*dim[1], largeur=unit*dim[0])
         if grid:
             ui.grid(dim, zoom=zoom)
@@ -169,23 +171,60 @@ def mainloop():
 
         elif ev[0] == 'Touche':
             touche = fltk.touche(ev)
+
+            # Dézoom
             if touche == '-':
                 zoom = max(zoom - 0.1, 0.1)
                 fltk.efface_tout()
                 draw()
+
+            # Zoom
             elif touche == '+' or touche == '=':
                 zoom = min(zoom + 0.1, 2)
                 fltk.efface_tout()
                 draw()
+
+            # Réinitialise le zoom
             elif touche == '0':
+
+                # Si non zoomé, retourne à la position initiale
+                # Permet un double clic
+                if zoom == 1:
+                    deplacement_map = (0, 0)
                 zoom = 1
                 fltk.efface_tout()
                 draw()
+
+            # Active / Désactive la grille
             elif touche == '1':
                 grid = not grid
                 fltk.efface_tout()
                 draw()
-            if touche == 'Down' or touche == 'Up':
+
+            # Déplacements de la carte
+            elif touche in ['Left', 'Right', 'Up', 'Down']:
+                unit = floor(min(w, h)//max(map.dim) * zoom)
+
+                # Gauche
+                if touche == 'Left':
+                    deplacement_map = (deplacement_map[0] + unit, deplacement_map[1])
+                
+                # Droite
+                elif touche == 'Right':
+                    deplacement_map = (deplacement_map[0] - unit, deplacement_map[1])
+                
+                if ui.none_active():
+                    # Haut
+                    if touche == 'Up':
+                        deplacement_map = (deplacement_map[0], deplacement_map[1] + unit)
+
+                    # Bas
+                    if touche == 'Down':
+                        deplacement_map = (deplacement_map[0], deplacement_map[1] - unit)
+                fltk.efface_tout()
+                draw()
+
+            if ui.get_state('popup') and touche == 'Down' or touche == 'Up':
                 if touche == 'Down':
                     map.current_page += 1
                 else:

@@ -211,11 +211,11 @@ def mainloop():
 
                 # Gauche
                 if touche == 'Left':
-                    deplacement_map = (deplacement_map[0] + unit, deplacement_map[1])
+                    deplacement_map = (deplacement_map[0] + 1, deplacement_map[1])
                 
                 # Droite
                 elif touche == 'Right':
-                    deplacement_map = (deplacement_map[0] - unit, deplacement_map[1])
+                    deplacement_map = (deplacement_map[0] - 1, deplacement_map[1])
                 
                 if ui.none_active():
                     # Haut

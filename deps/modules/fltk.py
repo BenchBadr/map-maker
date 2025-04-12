@@ -112,7 +112,7 @@ class CustomCanvas:
     _ev_mapping = {
         "ClicGauche": "<Button-1>",
         "ClicMilieu": "<Button-2>",
-        "ClicDroit": "<Button-2>" if _on_osx else "<Button-3>",
+        "ClicDroit": "<Button-3>",
         "LacheGauche":'<ButtonRelease-1>',
         "Deplacement": "<Motion>",
         "Touche": "<Key>",

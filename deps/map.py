@@ -88,16 +88,24 @@ class Map:
         self.grille[i][j] = tuile
         self.dump_img()
 
-    def display_map(self, unit, c0, c1):
+    def display_map(self, unit, c0, c1) -> None:
         c0 = c0 - (unit*self.dim[0]) // 2 +unit // 2
         c1 = c1 - (unit*self.dim[1]) // 2 + unit // 2
         for i in range(self.dim[0]):
             for j in range(self.dim[1]):
-                fltk.image(c0+i*unit, 
-                           c1+j*unit, 
-                           self.tuiles[self.grille[i][j]], 
-                           hauteur=unit, 
-                           largeur=unit)
+                if self.grille[i][j] is not None:
+                    fltk.image(c0+i*unit, 
+                            c1+j*unit, 
+                            self.tuiles[self.grille[i][j]], 
+                            hauteur=unit, 
+                            largeur=unit)
+                else:
+                    fltk.rectangle(c0+(i-1/2)*unit, 
+                            c1+(j - 1/2)*unit, 
+                            c0+(i + 1/2)*unit, 
+                            c1+(j + 1/2)*unit, 
+                            remplissage='grey',
+                            epaisseur=1)
     
     def tuiles_selector(self, key, x, y, x2, y2, args_func:dict) -> None:
         """

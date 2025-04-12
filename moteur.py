@@ -123,6 +123,20 @@ def mainloop():
                 dragged_object = None
                 dragging = False
                 # last_x, last_y = None, None
+        elif ev[0] == 'ClicDroit':
+            clicked = set(hovered)
+            x, y = fltk.abscisse(ev), fltk.ordonnee(ev)
+            for tag in clicked:
+                keys = tag.split('_')
+                if keys[0] == 'grid':
+                    tuile = [int(n) for n in tag.split('_')[1].split('-')]
+                    print('tuile', tuile)
+                    map.edit_tile(tuile[1], tuile[0], None)
+                    # ui.change_state('popup')
+                    fltk.efface_tout()
+                    draw()
+
+
         elif ev[0] == "ClicGauche":
             clicked = set(hovered)
             x, y = fltk.abscisse(ev), fltk.ordonnee(ev)

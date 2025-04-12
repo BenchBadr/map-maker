@@ -11,6 +11,8 @@ def mainloop():
     end = False
     grid = True
 
+    zoom = .5
+
     selected_tile = None
     global tile_memo
     tile_memo = set()
@@ -43,7 +45,7 @@ def mainloop():
         map.display_map(unit, (w)//2, (h)//2)
         # fltk.image(w//2, h//2, 'map.png', ancrage='center', hauteur=unit*dim[1], largeur=unit*dim[0])
         if grid:
-            ui.grid(dim)
+            ui.grid(dim, zoom=zoom)
 
         # selected tile
         if selected_tile != None:

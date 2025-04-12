@@ -1,7 +1,7 @@
 import deps.modules.fltk as fltk
 import deps.modules.fltk_addons as addons
 addons.init(fltk)
-
+from math import floor
 
 # États des components : visibles ou invisibles
 states = {
@@ -272,7 +272,7 @@ def grid_selectors(dim: list[int, int]) -> None:
                                remplissage='white',
                                tag=f"grid_{i}-{j}")
                 
-def grid(dim: list[int, int], color: str = 'blue') -> None:
+def grid(dim: list[int, int], zoom:float = 1, color: str = 'blue') -> None:
     """
     Crée une grille sur la fenêtre.
     Celle-ci est visible.
@@ -286,7 +286,7 @@ def grid(dim: list[int, int], color: str = 'blue') -> None:
     """
     w, h = fltk.largeur_fenetre(), fltk.hauteur_fenetre()
     size = min(w, h)
-    unit = size // max(dim)
+    unit = floor(size // max(dim))
 
     grid_width = dim[0] * unit
     grid_height = dim[1] * unit
@@ -295,11 +295,12 @@ def grid(dim: list[int, int], color: str = 'blue') -> None:
     base_y = (h - grid_height) // 2
 
     # now use fltk.ligne
-    for i in range(dim[1] + 1):
-        fltk.ligne(0, base_y + i * unit, w, base_y + i * unit, couleur=color)
-    for j in range(0, w // unit):
-        idx = j - base_x // unit
-        fltk.ligne(base_x + idx * unit, base_y, base_x + idx * unit, base_y + grid_height, couleur=color)
+    for i in range((h - grid_height)//(-unit), dim[1] + 1 + (h - grid_height)//(unit*2)):
+        idx = i # base_y // unit
+        fltk.ligne(0, base_y + idx * unit, w, base_y + idx * unit, couleur=color)
+    for j in range((w - grid_width)//(-unit),dim[0] + 1 + (w - grid_width)//(unit*2)):
+        idx = j
+        fltk.ligne(base_x + idx * unit, 0, base_x + idx * unit, h, couleur=color)
 
 def draw_hovered(i,j, dim, color='red') -> None:
     """

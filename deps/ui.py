@@ -280,39 +280,43 @@ def grid_selectors(dim: list[int, int], zoom = 1, deplacement_map = (0,0)) -> No
     delta_dim_y = (h//unit - dim[1]) // 2 + 1
     for j in range(1, delta_dim_x + 1):
         for i in range(delta_dim_y * 2 + dim[1] + 1):
-            fltk.rectangle(base_x - j * unit,
-                            i * unit,
-                           base_x - (j - 1) * unit,
-                             (i - 1) * unit,
+            i1, j1 = i + deplacement_map[1], j - deplacement_map[0]
+            i_, j_ = i + deplacement_map[1], j + deplacement_map[0]
+            fltk.rectangle(base_x - j1 * unit,
+                            i1 * unit,
+                           base_x - (j1 - 1) * unit,
+                             (i1 - 1) * unit,
                            remplissage='grey',
                            epaisseur=0,
-                           tag=f"grid_{i - delta_dim_x}*{-j}")
+                           tag=f"grid_{i - delta_dim_y}*{-j}")
             
-            fltk.rectangle(base_x + grid_width + (j - 1) * unit,
-                            i * unit,
-                           base_x + grid_width + (j) * unit,
-                             (i - 1) * unit,
+            fltk.rectangle(base_x + grid_width + (j_ - 1) * unit,
+                            i_ * unit,
+                           base_x + grid_width + (j_) * unit,
+                             (i_ - 1) * unit,
                            remplissage='grey',
                            epaisseur=0,
-                           tag=f"grid_{i + dim[0]}*{-j}")
+                           tag=f"grid_{i - delta_dim_y}*{dim[0] + j - 1}")
     # Top / Bottom padding
     for i in range(1,grid_width // unit + 1):
         for j in range(1, delta_dim_y + 1):
-            fltk.rectangle(base_x + i * unit,
-                           base_y - j * unit,
-                           base_x + (i - 1) * unit,
-                           base_y - (j - 1) * unit,
+            i_, j_ = i + deplacement_map[0], j + deplacement_map[1]
+            j2 = j - deplacement_map[1]
+            fltk.rectangle(base_x + i_ * unit,
+                           base_y - j2 * unit,
+                           base_x + (i_ - 1) * unit,
+                           base_y - (j2 - 1) * unit,
                            remplissage='grey',
                            epaisseur=0,
-                           tag=f"grid_{i}*{j}")
+                           tag=f"grid_{i_}*{j_}")
             
-            fltk.rectangle(base_x + i * unit,
-                           base_y + grid_height + (j - 1) * unit,
-                           base_x + (i - 1) * unit,
-                           base_y + grid_height + j * unit,
+            fltk.rectangle(base_x + i_ * unit,
+                           base_y + grid_height + (j_ - 1) * unit,
+                           base_x + (i_ - 1) * unit,
+                           base_y + grid_height + j_ * unit,
                            remplissage='grey',
                            epaisseur=0,
-                           tag=f"grid_{i}*{j}")
+                           tag=f"grid_{i_}*{j_}")
 
     
 

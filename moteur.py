@@ -106,7 +106,7 @@ def mainloop():
             tag = hovered[0]
             if ui.none_active() and tag.startswith('grid_'):
                 fltk.efface('xgrid_hover')
-                tuile = [int(n) for n in tag.split('_')[1].split('-')]
+                tuile = [int(n) for n in tag.split('_')[1].split('*')]
                 ui.draw_hovered(tuile[0], tuile[1], map.dim, zoom = zoom, deplacement_map = deplacement_map)
         elif len(hovered) == 0:
             fltk.efface('xgrid_hover')
@@ -136,7 +136,7 @@ def mainloop():
             for tag in clicked:
                 keys = tag.split('_')
                 if keys[0] == 'grid':
-                    tuile = [int(n) for n in tag.split('_')[1].split('-')]
+                    tuile = [int(n) for n in tag.split('_')[1].split('*')]
                     map.edit_tile(tuile[1], tuile[0], None)
                     # ui.change_state('popup')
                     fltk.efface_tout()
@@ -166,7 +166,7 @@ def mainloop():
                 if len(clicked) == 1:
                     if keys[0] == 'grid' and not dragging:
                         if ui.none_active():
-                            tuile = [int(n) for n in tag.split('_')[1].split('-')]
+                            tuile = [int(n) for n in tag.split('_')[1].split('*')]
                             # map.edit_tile(tuile[1], tuile[0], 'SSDH')
                             selected_tile = tuile
                             ui.change_state('popup')

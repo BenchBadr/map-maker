@@ -89,6 +89,21 @@ class Map:
         self.dump_img()
 
     def display_map(self, unit, c0, c1, zoom = 1, deplacement_map = (0,0)) -> None:
+        """
+        Affiche la carte par cases d'images (ou rectangles si case non définies)
+
+        Args:
+            unit: La taille de chaque case.
+            c0: La coordonnée x de la carte.
+            c1: La coordonnée y de la carte.
+            zoom: Le facteur de zoom.
+            deplacement_map: Le déplacement de la carte (utilisé pour le scrolling)
+        """
+        h = fltk.hauteur_fenetre()
+        w = fltk.largeur_fenetre()
+
+        # TODO : Avoid unnecessary renders (case of overflow)
+
         unit = floor(unit * zoom)
         c0 = (c0 - (unit*self.dim[0]) // 2 +unit // 2) + deplacement_map[0] * unit
         c1 = (c1 - (unit*self.dim[1]) // 2 + unit // 2) + deplacement_map[1] * unit

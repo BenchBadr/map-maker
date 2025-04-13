@@ -262,6 +262,7 @@ def grid_selectors(dim: list[int, int], zoom = 1, deplacement_map = (0,0)) -> No
     base_x = (w - grid_width) // 2
     base_y = (h - grid_height) // 2
 
+    # map selectors
     for i in range(dim[1]):
         for j in range(dim[0]):
                 i_, j_ = i + deplacement_map[1], j + deplacement_map[0]
@@ -269,9 +270,53 @@ def grid_selectors(dim: list[int, int], zoom = 1, deplacement_map = (0,0)) -> No
                                base_y + i_ * unit, 
                                base_x + (j_ + 1) * unit, 
                                base_y + (i_ + 1) * unit, 
-                               epaisseur=1, 
+                               epaisseur=0, 
                                remplissage='grey',
-                               tag=f"grid_{i}-{j}")
+                               tag=f"grid_{i}*{j}")
+                
+    # outer selectors
+    # Left / Right padding
+    delta_dim_x = (w//unit - dim[0]) // 2 + 1
+    delta_dim_y = (h//unit - dim[1]) // 2 + 1
+    for j in range(1, delta_dim_x + 1):
+        for i in range(delta_dim_y * 2 + dim[1] + 1):
+            fltk.rectangle(base_x - j * unit,
+                            i * unit,
+                           base_x - (j - 1) * unit,
+                             (i - 1) * unit,
+                           remplissage='grey',
+                           epaisseur=0,
+                           tag=f"grid_{i - delta_dim_x}*{-j}")
+            
+            fltk.rectangle(base_x + grid_width + (j - 1) * unit,
+                            i * unit,
+                           base_x + grid_width + (j) * unit,
+                             (i - 1) * unit,
+                           remplissage='grey',
+                           epaisseur=0,
+                           tag=f"grid_{i + dim[0]}*{-j}")
+    # Top / Bottom padding
+    for i in range(1,grid_width // unit + 1):
+        for j in range(1, delta_dim_y + 1):
+            fltk.rectangle(base_x + i * unit,
+                           base_y - j * unit,
+                           base_x + (i - 1) * unit,
+                           base_y - (j - 1) * unit,
+                           remplissage='grey',
+                           epaisseur=0,
+                           tag=f"grid_{i}*{j}")
+            
+            fltk.rectangle(base_x + i * unit,
+                           base_y + grid_height + (j - 1) * unit,
+                           base_x + (i - 1) * unit,
+                           base_y + grid_height + j * unit,
+                           remplissage='grey',
+                           epaisseur=0,
+                           tag=f"grid_{i}*{j}")
+
+    
+
+
                 
 def grid(dim: list[int, int], zoom:float = 1, color: str = 'blue') -> None:
     """

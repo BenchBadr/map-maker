@@ -85,6 +85,18 @@ class Map:
             j: La coordonnée j de la tuile.
             tuile: Le nom de la nouvelle tuile.
         """
+
+        # TODO : handle reshaping
+
+        if i < 0 or j < 0 or j >= self.dim[1] or i >= self.dim[0]:
+            if j >= self.dim[0]:
+                for idx in range(self.dim[1]):
+                    if idx == i:
+                        self.grille[idx] = self.grille[idx] + [tuile] + [None for _ in range(j - self.dim[1])]
+                    else:
+                        self.grille[idx] = self.grille[idx] + [None for _ in range(j - self.dim[1] + 1)]
+                self.dim = (j, self.dim[1])
+        print(i,j, self.grille)
         self.grille[i][j] = tuile
         self.dump_img()
 
@@ -120,7 +132,7 @@ class Map:
                             c1+(j - 1/2)*unit, 
                             c0+(i + 1/2)*unit, 
                             c1+(j + 1/2)*unit, 
-                            remplissage='grey',
+                            remplissage='#555',
                             epaisseur=1)
     
     def tuiles_selector(self, key, x, y, x2, y2, args_func:dict) -> None:

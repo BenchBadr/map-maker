@@ -24,7 +24,7 @@ def mainloop():
     global tile_memo
     tile_memo = set()
 
-    map = Map([['MRPM' for _ in range(10)] for i in range(10)])
+    map = Map([['MRPM' for _ in range(2)] for i in range(2)])
     map.dump_img()
 
     
@@ -207,8 +207,6 @@ def mainloop():
 
             # Déplacements de la carte
             elif touche in ['Left', 'Right', 'Up', 'Down']:
-                unit = floor(min(w, h)//max(map.dim) * zoom)
-
                 # Gauche
                 if touche == 'Left':
                     deplacement_map = (deplacement_map[0] + 1, deplacement_map[1])

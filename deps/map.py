@@ -11,7 +11,7 @@ addons.init(fltk)
 from math import floor, ceil
 
 class Map:
-    def __init__(self, grille=None):
+    def __init__(self, grille=None) -> None:
         """
         Initialise la carte avec une grille donnée.
         Args:
@@ -35,6 +35,8 @@ class Map:
         """
         Renvoie une image représentant la carte.
         Prend soin de ne pas la recréer s'il  suffit de faire des modifications.
+        Returns:
+            image: L'image représentant la carte.
         """
         x,y = len(self.grille), len(self.grille[0])
         if self.img is not None:
@@ -107,7 +109,8 @@ class Map:
         self.dim = (len(self.grille), len(self.grille[0]))
         self.grille[i][j] = tuile
         self.dump_img()
-        return (j, i)
+
+        return (j - self.deplacement_map[0], i - self.deplacement_map[1])
 
     def display_map(self, unit, c0, c1, zoom = 1, deplacement_map = (0,0)) -> None:
         """
@@ -201,3 +204,32 @@ class Map:
                 tile_memo.add(neigh[count][0])
                 fltk.image(c[0], c[1], neigh[count][1], hauteur=int(unit), largeur=int(unit), tag='tile_'+neigh[count][0])
                 count += 1
+
+    def emplacement_valide(self, i:int, j:int, nom_tuile:str) -> bool:
+        """
+        Vérifie si un emplacement est valide en fonction de la tuile.
+
+        Args:
+            i: Indice i à vérifier.
+            j: Indice j à vérifier.
+            nom_tuile: Nom de la nouvelle tuile à vérifier.
+        Returns:
+            bool: True ou False en fonction de si la nouvelle tuile est plaçable ou non.
+        """
+        # Tâche 1
+        ## Vérification des raccords
+        directions = (0,1), (1,0), (0,-1), (-1,0)
+        for dr, dc in directions:
+            # check boundaries
+            if i+dr >= self.dim[0] or i+dr < 0 or j+dc >= self.dim[1] or j + dr < 0:
+                continue
+            # check if the tile is not None
+            if self.grille[i+dr][j+dc] is None:
+                continue
+            # check if the tile is compatible
+            ## vertical check
+            if i + dr > i:
+                if nom_tuile[0] != self.grille[i+dr][j+dc][2]:
+                    return False
+        return True
+

@@ -19,6 +19,7 @@ def mainloop():
     ZOOM_STEP = 0.1
 
     deplacement_map = (0,0)
+    delta_dep_map = None
 
     selected_tile = None
     global tile_memo
@@ -137,7 +138,7 @@ def mainloop():
                 keys = tag.split('_')
                 if keys[0] == 'grid':
                     tuile = [int(n) for n in tag.split('_')[1].split('*')]
-                    selected_tile = map.edit_tile(tuile[1], tuile[0], None)
+                    map.edit_tile(tuile[1], tuile[0], None)
                     # ui.change_state('popup')
                     fltk.efface_tout()
                     draw()
@@ -204,6 +205,11 @@ def mainloop():
                 fltk.efface_tout()
                 draw()
 
+            # Remove selected
+            elif touche == 'Escape':
+                selected_tile = None
+                fltk.efface('sel_tile')
+
             # Déplacements de la carte
             elif touche in ['Left', 'Right', 'Up', 'Down']:
                 # Gauche
@@ -223,7 +229,12 @@ def mainloop():
                     if touche == 'Down':
                         deplacement_map = (deplacement_map[0], deplacement_map[1] - 1)
 
+                delta_dep_map = map.deplacement_map
                 map.deplacement_map = deplacement_map
+                if selected_tile is not None:
+                    # deplacement relatif
+                    dep_rel = (deplacement_map[0] - delta_dep_map[0], deplacement_map[1] - delta_dep_map[1])
+                    selected_tile = (selected_tile[0] + dep_rel[1], selected_tile[1] + dep_rel[0])
                 fltk.efface_tout()
                 draw()
 

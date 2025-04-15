@@ -29,6 +29,7 @@ class Map:
         self.img = None
         # used for tile picker
         self.current_page = 0
+        self.deplacement_map = (0,0)
 
     def dump_img(self) -> PIL.Image:
         """
@@ -88,15 +89,22 @@ class Map:
 
         # TODO : handle reshaping
 
-        if i < 0 or j < 0 or j >= self.dim[1] or i >= self.dim[0]:
-            if j >= self.dim[0]:
-                for idx in range(self.dim[1]):
-                    if idx == i:
-                        self.grille[idx] = self.grille[idx] + [tuile] + [None for _ in range(j - self.dim[1])]
-                    else:
-                        self.grille[idx] = self.grille[idx] + [None for _ in range(j - self.dim[1] + 1)]
-                self.dim = (j, self.dim[1])
-        print(i,j, self.grille)
+        # Ajuster les coordonnés
+        i, j = i - self.deplacement_map[0], j - self.deplacement_map[1]
+        # Redimension dynamique et invisible, pour "estomper" la finitude temporaire de la carte
+        if i < 0:
+            self.grille = [[None for _ in range(self.dim[1])] for _ in range(-i)] + self.grille
+            i = 0
+        elif i >= self.dim[0]:
+            self.grille += [[None for _ in range(self.dim[1])] for _ in range(i - self.dim[0] + 1)]
+        elif j < 0:
+            for k in range(len(self.grille)):
+                self.grille[k] = [None for _ in range(-j)] + self.grille[k]
+            j = 0
+        elif j >= self.dim[1]:
+            for k in range(len(self.grille)):
+                self.grille[k] = self.grille[k] + [None for _ in range(j - self.dim[1] + 1)]
+        self.dim = (len(self.grille), len(self.grille[0]))
         self.grille[i][j] = tuile
         self.dump_img()
 
@@ -132,8 +140,8 @@ class Map:
                             c1+(j - 1/2)*unit, 
                             c0+(i + 1/2)*unit, 
                             c1+(j + 1/2)*unit, 
-                            remplissage='#555',
-                            epaisseur=1)
+                            remplissage='#555', # Change this color to make Map boundaries visible
+                            epaisseur=0)
     
     def tuiles_selector(self, key, x, y, x2, y2, args_func:dict) -> None:
         """

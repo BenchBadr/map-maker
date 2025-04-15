@@ -137,7 +137,7 @@ def mainloop():
                 keys = tag.split('_')
                 if keys[0] == 'grid':
                     tuile = [int(n) for n in tag.split('_')[1].split('*')]
-                    map.edit_tile(tuile[1], tuile[0], None)
+                    selected_tile = map.edit_tile(tuile[1], tuile[0], None)
                     # ui.change_state('popup')
                     fltk.efface_tout()
                     draw()
@@ -161,13 +161,12 @@ def mainloop():
                 if keys[0] == 'expand':
                     ui.set_fullscreen(keys[1])
                 if keys[0] == 'tile':
-                    map.edit_tile(selected_tile[1], selected_tile[0], keys[1])
+                    selected_tile = map.edit_tile(selected_tile[1], selected_tile[0], keys[1])
                     # ui.change_state('popup')
                 if len(clicked) == 1:
                     if keys[0] == 'grid' and not dragging:
                         if ui.none_active():
                             tuile = [int(n) for n in tag.split('_')[1].split('*')]
-                            # map.edit_tile(tuile[1], tuile[0], 'SSDH')
                             selected_tile = tuile
                             ui.change_state('popup')
             fltk.efface_tout()

@@ -97,7 +97,7 @@ class Map:
             i = 0
         elif i >= self.dim[0]:
             self.grille += [[None for _ in range(self.dim[1])] for _ in range(i - self.dim[0] + 1)]
-        elif j < 0:
+        if j < 0:
             for k in range(len(self.grille)):
                 self.grille[k] = [None for _ in range(-j)] + self.grille[k]
             j = 0
@@ -107,6 +107,7 @@ class Map:
         self.dim = (len(self.grille), len(self.grille[0]))
         self.grille[i][j] = tuile
         self.dump_img()
+        return (j, i)
 
     def display_map(self, unit, c0, c1, zoom = 1, deplacement_map = (0,0)) -> None:
         """

@@ -25,7 +25,7 @@ def mainloop():
     global tile_memo
     tile_memo = set()
 
-    map = Map([['MRPM' for _ in range(2)] for i in range(3)])
+    map = Map([['SSDH' for _ in range(2)] for i in range(3)])
     map.dump_img()
 
     

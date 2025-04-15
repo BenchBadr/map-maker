@@ -110,7 +110,7 @@ class Map:
         self.grille[i][j] = tuile
         self.dump_img()
 
-        return (j - self.deplacement_map[0], i - self.deplacement_map[1])
+        return (j + self.deplacement_map[1], i + self.deplacement_map[0])
 
     def display_map(self, unit, c0, c1, zoom = 1, deplacement_map = (0,0)) -> None:
         """
@@ -159,8 +159,11 @@ class Map:
         tile = args_func['tile']
         tile_memo = args_func['tile_memo']
 
+        # Test interface : Display all tiles
         neigh = [[key, value] for key, value in self.tuiles.items() if key != tile]
-        # neigh = [[t, self.tuiles[t]] for t in tuiles_possibles(self.grille, tile[0], tile[1], self.tuiles)]
+
+        # Get possible tiles properly
+        # neigh = [[t, self.tuiles[t]] for t in self.tuiles_possibles(tile[0], tile[1])]
         s = len(neigh)
         w, h = abs(x - x2), abs(y - y2)
         unit = min(w, h) // 10
@@ -170,6 +173,13 @@ class Map:
         n_y = floor((h + p) // (unit + p))
 
         pages = ceil(s / (n_x * n_y))
+
+        if pages == 0:
+            texte = 'Impossible'
+            taille = floor(abs(x - x2) // len(texte))
+            fltk.texte(x+taille*2, floor(y + abs(y - y2) / 2 - taille), texte, couleur='#8a4641', taille=taille, tag=key)
+            return
+
         self.current_page = min(max(0,self.current_page), pages - 1)
         current_page = self.current_page
 
@@ -226,10 +236,42 @@ class Map:
             # check if the tile is not None
             if self.grille[i+dr][j+dc] is None:
                 continue
+
+            voisin = self.grille[i+dr][j+dc]
             # check if the tile is compatible
             ## vertical check
             if i + dr > i:
                 if nom_tuile[0] != self.grille[i+dr][j+dc][2]:
                     return False
+            else:
+                if nom_tuile[2] != self.grille[i+dr][j+dc][0]:
+                    return False
+            ## horizontal check
+            if j + dc > j:
+                if nom_tuile[1] != self.grille[i+dr][j+dc][3]:
+                    return False
+            else:
+                if nom_tuile[3] != self.grille[i+dr][j+dc][1]:
+                    return False
+                
+            if nom_tuile[1] == 'D' and voisin[3] not in ['S']:  # Côte à droite
+                return False
         return True
+    
+    def tuiles_possibles(self, i:int, j:int) -> list:
+        """
+        Ajoute les options des tuiles disponibles dans la case en fonction de toutes les tuiles.
 
+        Args:
+            grille : Grille du MapMaker.
+            i : Indice i à vérifier.
+            j : Indice j à vérifier.
+            list_tuiles : Liste de toutes les tuiles disponibles.
+        Returns:
+            options (list) : Liste contenant les tuiles possibles.
+        """
+        options = []
+        for tuile in self.tuiles.keys():
+            if self.emplacement_valide(i, j, tuile):
+                options.append(tuile)
+        return options

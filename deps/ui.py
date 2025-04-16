@@ -81,7 +81,17 @@ def set_coords(key:str, x:int,y:int) -> None:
     states[key] = (x,y)
 
 
-def create_popup(key:list[str, bool], message:str, wrap_func, args_func:dict = {}, width=0.8, height=0.8, bg_color="#1e1e1e", color="#b8b8b6", max_width=float('inf'), max_height=float('inf')) -> None:
+def create_popup(key:list[str, bool], 
+                 message:str, 
+                 wrap_func = None, 
+                 args_func:dict = {}, 
+                 width=0.8, 
+                 height=0.8, 
+                 bg_color="#1e1e1e", 
+                 color="#b8b8b6", 
+                 max_width=float('inf'), 
+                 max_height=float('inf'), 
+                 content:str = None) -> None:
     """
     Crée un popup avec un message et un bouton de fermeture. 
 
@@ -237,7 +247,15 @@ def create_popup(key:list[str, bool], message:str, wrap_func, args_func:dict = {
                 button_y - button_size + p,
                 couleur='#61c554', epaisseur=2,tag='blank_'+key[0])
         
-    wrap_func(key[0],c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r), args_func)
+    if wrap_func is not None:
+        wrap_func(key[0],c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r), args_func)
+
+    if content != None:
+        taille = floor((min(width, height) - r) // len(content))
+        x, y = c[0] + r, c[1] + r
+        x2, y2 = c[0] + (width - r), c[1] + (height - r)
+        fltk.texte(x, y, content, couleur='#aaa', taille=taille, tag=key)
+        return
 
 
 def grid_selectors(dim: list[int, int], zoom = 1, deplacement_map = (0,0)) -> None:

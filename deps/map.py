@@ -22,13 +22,14 @@ class Map:
             self.grille = grille
         self.dim = len(self.grille), len(self.grille[0])
         import os
-        self.tuiles = cree_dico('deps/tuiles')
-        # Pour mémoïser
-        self.img = None
+        self.tuiles = cree_dico('deps/assets/tuiles')
+
+
         # used for tile picker
         self.current_page = 0
         self.deplacement_map = (0,0)
         self.debug = False
+        self.riviere = False
 
     def dump_img(self) -> PIL.Image:
         """
@@ -37,45 +38,18 @@ class Map:
         Returns:
             image: L'image représentant la carte.
         """
-        x,y = len(self.grille), len(self.grille[0])
-        if self.img is not None:
-            image = self.img.copy()
-
-            # En cas de changement de taille de la grille
-            if image.size != (x*32, y*32):
-                # Si plus petit, agrandir la taille de l'image
-                if image.size[0] < x or image.size[1] < y:
-                    new_image = PIL.Image.new('RGB', (x*32, y*32), color=(255, 255, 255))
-                    new_image.paste(image, (0, 0))
-                    image = new_image
+        x, y = self.dim
+        image = PIL.Image.new('RGB', (x*100, y*100), color=(255, 255, 255))
+        for i in range(x):
+            for j in range(y):
+                tuile = self.grille[i][j]
+                if tuile is not None:
+                    image.paste(PIL.Image.open(self.tuiles[tuile]), (i*100, j*100))
                 else:
-                    # Si l'image est plus grande, la recadrer
-                    image = image.crop((0, 0, x*32, y*32))
+                    # Créer une case blanche si la tuile est None
+                    white_square = PIL.Image.new('RGB', (100, 100), color=(128, 128, 128))
+                    image.paste(white_square, (i*100, j*100))
 
-            # Mettre à jour uniquement les cases nécessaires
-            for i in range(x):
-                for j in range(y):
-                    tuile = self.grille[i][j]
-                    if tuile is not None:
-                        image.paste(PIL.Image.open(self.tuiles[tuile]), (i*32, j*32))
-                    else:
-                        white_square = PIL.Image.new('RGB', (32, 32), color=(255, 255, 255))
-                        image.paste(white_square, (i*32, j*32))
-            self.img = image
-            
-        else:
-            image = PIL.Image.new('RGB', (x*32, y*32), color=(255, 255, 255))
-            for i in range(x):
-                for j in range(y):
-                    tuile = self.grille[i][j]
-                    if tuile is not None:
-                        image.paste(PIL.Image.open(self.tuiles[tuile]), (i*32, j*32))
-                    else:
-                        # Créer une case blanche si la tuile est None
-                        white_square = PIL.Image.new('RGB', (32, 32), color=(255, 255, 255))
-                        image.paste(white_square, (i*32, j*32))
-
-        self.img = image
         image.save('map.png')
         return image
     
@@ -151,7 +125,8 @@ class Map:
                             c1+(j + 1/2)*unit, 
                             remplissage='#555' if self.debug else 'grey', # Change this color to make Map boundaries visible
                             epaisseur=0)
-    
+                    
+
     def tuiles_selector(self, key, x, y, x2, y2, args_func:dict) -> None:
         """
         Dessine la grille de sélection des tuiles.
@@ -163,9 +138,6 @@ class Map:
         """
         tile = args_func['tile']
         tile_memo = args_func['tile_memo']
-
-        # Test interface : Display all tiles
-        # neigh = [[key, value] for key, value in self.tuiles.items() if key != tile]
 
         # Get possible tiles properly
         neigh = [[t, self.tuiles[t]] for t in self.tuiles_possibles(tile[0], tile[1])]
@@ -181,7 +153,7 @@ class Map:
 
         if pages == 0:
             texte = 'Impossible'
-            taille = floor(abs(x - x2) // len(texte))
+            taille = floor(min(abs(x - x2), abs(y - y2)) // len(texte))
             fltk.texte(x+taille*2, floor(y + abs(y - y2) / 2 - taille), texte, couleur='#8a4641', taille=taille, tag=key)
             return
 
@@ -261,11 +233,102 @@ class Map:
             if voisin is not None:
                 if voisin[index_voisin] != nom_tuile[index_tuile]:
                     return False 
-
+        if self.riviere and 'R' in nom_tuile:
+            return self.riviere_valide(i, j, nom_tuile)
         return True
+    
+    def get_vois(self, i:int,j:int, nom_tuile:str) -> list[tuple[int,int]]:
+        '''
+        Renvoie les cases voisines où se poursuit la rivière
+        '''
+        dir =  [
+            # Vertical
+            (-1, 0, 2, 0),
+            ( 1, 0, 0, 2), 
+
+            # Horizontal
+            ( 0, 1, 3, 1),
+            ( 0,-1, 1, 3) 
+        ]
+        voisins = []
+
+        for dx, dy, index_voisin, index_tuile in dir:
+            ni, nj = i + dx, j + dy
+            if 0 <= ni < self.dim[0] and 0 <= nj < self.dim[1]:
+                voisin = self.grille[ni][nj]
+
+                if voisin is None:
+                    continue
+
+                # Ici, on check la correspondance de biômes adjacents
+                # Mais specifiquement pour R
+                if voisin[index_voisin] == 'R':
+                    if voisin[index_voisin] == nom_tuile[index_tuile]:
+                        voisins.append((ni, nj))
+        return voisins
 
     
         
+    def riviere_valide(self, i:int, j:int, nom_tuile:str, visited:set = None) -> bool:
+        """
+        Vérifie si la tuile est valide pour la rivière.
+
+        Args:
+            i: Indice i à vérifier.
+            j: Indice j à vérifier.
+            nom_tuile: Nom de la nouvelle tuile à vérifier.
+        Returns:
+            bool: True ou False en fonction de si la nouvelle tuile est plaçable ou non.
+        """
+
+        if visited is None:
+            visited = set()
+
+        visited.add((i,j))
+        
+        voisins = [v for v in self.get_vois(i,j, nom_tuile) if v not in visited]
+
+
+        if len(voisins) == 0:
+            '''
+            Si pas de voisin <=> fin (ou début) de rivière
+            Il doit s'agir, au choix de:
+            1. une case aux extrémités de la grille (fin)
+            2. montagne (début)
+            3. mer (fin)
+
+            On profite du fait que bool(n) avec n un int <=> True.
+            On note:
+            - 1 pour vrai + source
+            - 2 pour vrai + sans source
+            '''
+            # Cas 1
+            if i == 0 or i == self.dim[0] - 1 or j == 0 or j == self.dim[1] - 1:
+                return True
+            # Cas 2
+            if 'M' in nom_tuile:
+                return 1 
+            # Cas 3
+            if 'S' in nom_tuile:
+                return 2
+            
+            return False
+        
+        elif len(voisins) > 1:
+            for voisin in voisins:
+                if voisin not in visited:
+                    '''
+                    La rivière ne doit pas se diviser.
+                    Deux rivières peuvent se rejoindre.
+                    Il suffit que deux branches d'une rivière aient deux sources.
+                    '''
+                    if self.riviere_valide(voisin[0], voisin[1], visited) != 1:
+                        return False
+                
+        return self.riviere_valide(voisins[0][0], voisins[0][1], visited)
+
+
+
     
     def tuiles_possibles(self, i:int, j:int) -> list:
         """
@@ -288,7 +351,7 @@ class Map:
 
 if __name__ == '__main__':
     map = Map([
-        [None, None],
-        [None, 'PRRR']
+        ['PRRP', 'RRPP'],
+        ['PPRR', 'RPPR']
     ])
     print(map.emplacement_valide(2,1, 'FPFF'))

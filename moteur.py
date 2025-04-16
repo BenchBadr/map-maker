@@ -25,14 +25,15 @@ def mainloop():
     global tile_memo
     tile_memo = set()
 
-    map = Map([[None for _ in range(2)] for i in range(2)])
-    # map = Map([
-    #     [None, 'FFMM'],
-    #     [None, None]
-    # ])
-    map.dump_img()
+    # map = Map([[None for _ in range(2)] for i in range(2)])
+    map = Map([
+        ['PRRP', 'RRPP'],
+        ['PPRR', 'RPPR']
+    ])
+    # map.dump_img()
 
     map.debug = False
+    map.riviere = True
 
     
     fltk.cree_fenetre(w, h, redimension=True)
@@ -44,6 +45,10 @@ def mainloop():
                             map.tuiles_selector,
                             args_func={'tile':selected_tile, 'tile_memo':tile_memo},
                             max_width=500, max_height=500)
+        if key == 'saved':
+            ui.create_popup(['saved', False], 
+                            "Saved", 
+                            content='Map saved')
 
     def draw():
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
@@ -64,8 +69,10 @@ def mainloop():
         # selected tile
         if selected_tile != None:
             ui.draw_hovered(selected_tile[0], selected_tile[1], map.dim, color='green', zoom = zoom, deplacement_map=deplacement_map)
+        
         # popup
         draw_popup('popup')
+        draw_popup('saved')
 
     draw()
 
@@ -216,6 +223,13 @@ def mainloop():
                 map.debug = not map.debug
                 fltk.efface_tout()
                 draw()
+
+            # Save map as picture `./map.png`
+            elif touche.lower() == 's':
+                if not ui.get_state('saved'):
+                    ui.change_state('saved')
+                    draw_popup('saved')
+                    map.dump_img()
 
             # Déplacements de la carte
             elif touche in ['Left', 'Right', 'Up', 'Down']:

@@ -89,6 +89,8 @@ Un événement `LacheGauche` a été ceéé, utilisant l'événement `<ButtonRel
     - Toggle grid
 - `Escape`
     - Toggle debug mode
+- `S`
+    - Dump image as `map.png` in parent directory. Does not resize.
 
 # Ouverture
 

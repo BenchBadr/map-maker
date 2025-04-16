@@ -276,6 +276,9 @@ def grid_selectors(dim: list[int, int], zoom = 1, deplacement_map = (0,0)) -> No
                                epaisseur=0, 
                                remplissage='grey',
                                tag=f"grid_{i}*{j}")
+
+
+
     
 
 

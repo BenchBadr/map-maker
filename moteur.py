@@ -25,8 +25,14 @@ def mainloop():
     global tile_memo
     tile_memo = set()
 
-    map = Map([['SSDH' for _ in range(2)] for i in range(3)])
+    map = Map([[None for _ in range(2)] for i in range(2)])
+    # map = Map([
+    #     [None, 'FFMM'],
+    #     [None, None]
+    # ])
     map.dump_img()
+
+    map.debug = False
 
     
     fltk.cree_fenetre(w, h, redimension=True)
@@ -207,8 +213,9 @@ def mainloop():
 
             # Remove selected
             elif touche == 'Escape':
-                selected_tile = None
-                fltk.efface('sel_tile')
+                map.debug = not map.debug
+                fltk.efface_tout()
+                draw()
 
             # Déplacements de la carte
             elif touche in ['Left', 'Right', 'Up', 'Down']:

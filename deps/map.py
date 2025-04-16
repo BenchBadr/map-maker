@@ -2,11 +2,9 @@ import PIL.Image
 try:
     from cree_dico import cree_dico
     import modules.fltk as fltk,modules.fltk_addons as addons
-    from tuiles import tuiles_possibles
 except ImportError:
     from deps.cree_dico import cree_dico
     import deps.modules.fltk as fltk,deps.modules.fltk_addons as addons
-    from deps.tuiles_tester import tuiles_possibles
 addons.init(fltk)
 from math import floor, ceil
 
@@ -30,6 +28,7 @@ class Map:
         # used for tile picker
         self.current_page = 0
         self.deplacement_map = (0,0)
+        self.debug = False
 
     def dump_img(self) -> PIL.Image:
         """
@@ -89,8 +88,6 @@ class Map:
             tuile: Le nom de la nouvelle tuile.
         """
 
-        # TODO : handle reshaping
-
         # Ajuster les coordonnés
         i, j = i - self.deplacement_map[0], j - self.deplacement_map[1]
         # Redimension dynamique et invisible, pour "estomper" la finitude temporaire de la carte
@@ -123,9 +120,6 @@ class Map:
             zoom: Le facteur de zoom.
             deplacement_map: Le déplacement de la carte (utilisé pour le scrolling)
         """
-        h = fltk.hauteur_fenetre()
-        w = fltk.largeur_fenetre()
-
         # TODO : Avoid unnecessary renders (case of overflow)
 
         unit = floor(unit * zoom)
@@ -139,12 +133,23 @@ class Map:
                             self.tuiles[self.grille[i][j]], 
                             hauteur=unit, 
                             largeur=unit)
+                    if self.debug:
+                        taille = unit // 8
+                        fltk.rectangle(c0+i*unit - taille*2,
+                                c1+j*unit - taille, 
+                                c0+i*unit + taille*2, 
+                                c1+j*unit + taille*.75, 
+                                remplissage='beige', 
+                                couleur='orange',
+                                epaisseur=5)
+                        fltk.texte(c0+i*unit - taille * 2,
+                            c1+j*unit - taille, self.grille[i][j], taille = taille, couleur='orange')
                 else:
                     fltk.rectangle(c0+(i-1/2)*unit, 
                             c1+(j - 1/2)*unit, 
                             c0+(i + 1/2)*unit, 
                             c1+(j + 1/2)*unit, 
-                            remplissage='#555', # Change this color to make Map boundaries visible
+                            remplissage='#555' if self.debug else 'grey', # Change this color to make Map boundaries visible
                             epaisseur=0)
     
     def tuiles_selector(self, key, x, y, x2, y2, args_func:dict) -> None:
@@ -160,10 +165,10 @@ class Map:
         tile_memo = args_func['tile_memo']
 
         # Test interface : Display all tiles
-        neigh = [[key, value] for key, value in self.tuiles.items() if key != tile]
+        # neigh = [[key, value] for key, value in self.tuiles.items() if key != tile]
 
         # Get possible tiles properly
-        # neigh = [[t, self.tuiles[t]] for t in self.tuiles_possibles(tile[0], tile[1])]
+        neigh = [[t, self.tuiles[t]] for t in self.tuiles_possibles(tile[0], tile[1])]
         s = len(neigh)
         w, h = abs(x - x2), abs(y - y2)
         unit = min(w, h) // 10
@@ -215,7 +220,7 @@ class Map:
                 fltk.image(c[0], c[1], neigh[count][1], hauteur=int(unit), largeur=int(unit), tag='tile_'+neigh[count][0])
                 count += 1
 
-    def emplacement_valide(self, i:int, j:int, nom_tuile:str) -> bool:
+    def emplacement_valide(self, i: int,j: int, nom_tuile: str) -> bool:
         """
         Vérifie si un emplacement est valide en fonction de la tuile.
 
@@ -228,35 +233,39 @@ class Map:
         """
         # Tâche 1
         ## Vérification des raccords
-        directions = (0,1), (1,0), (0,-1), (-1,0)
-        for dr, dc in directions:
-            # check boundaries
-            if i+dr >= self.dim[0] or i+dr < 0 or j+dc >= self.dim[1] or j + dr < 0:
-                continue
-            # check if the tile is not None
-            if self.grille[i+dr][j+dc] is None:
+        rows, cols = self.dim
+
+        ### (dr, dc, index_voisin, index_tuile) tels que
+        ### dr, dc = vect de déplacement (0,-1) <=> case du haut
+        ### index_voisin, index_tuile = indices des côtés adjacents (à comparer)
+        neighbor_checks = [
+            # Vertical
+            (-1, 0, 2, 0),
+            ( 1, 0, 0, 2), 
+
+            # Horizontal
+            ( 0, 1, 3, 1),
+            ( 0,-1, 1, 3) 
+        ]
+
+        for dr, dc, index_voisin, index_tuile in neighbor_checks:
+            ni, nj = i + dr, j + dc
+
+            # Ignore les voisins en dehors de la grille
+            if not (0 <= nj < rows and 0 <= ni < cols):
                 continue
 
-            voisin = self.grille[i+dr][j+dc]
-            # check if the tile is compatible
-            ## vertical check
-            if i + dr > i:
-                if nom_tuile[0] != self.grille[i+dr][j+dc][2]:
-                    return False
-            else:
-                if nom_tuile[2] != self.grille[i+dr][j+dc][0]:
-                    return False
-            ## horizontal check
-            if j + dc > j:
-                if nom_tuile[1] != self.grille[i+dr][j+dc][3]:
-                    return False
-            else:
-                if nom_tuile[3] != self.grille[i+dr][j+dc][1]:
-                    return False
-                
-            if nom_tuile[1] == 'D' and voisin[3] not in ['S']:  # Côte à droite
-                return False
+            voisin = self.grille[nj][ni]
+
+            # si non défini, pas de contrainte
+            if voisin is not None:
+                if voisin[index_voisin] != nom_tuile[index_tuile]:
+                    return False 
+
         return True
+
+    
+        
     
     def tuiles_possibles(self, i:int, j:int) -> list:
         """
@@ -275,3 +284,10 @@ class Map:
             if self.emplacement_valide(i, j, tuile):
                 options.append(tuile)
         return options
+
+if __name__ == '__main__':
+    map = Map([
+        [None, None],
+        ['FFMM', None]
+    ])
+    print(map.emplacement_valide(0,0, 'FPFF'))

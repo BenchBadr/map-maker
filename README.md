@@ -87,6 +87,8 @@ Un événement `LacheGauche` a été ceéé, utilisant l'événement `<ButtonRel
     - If not zoomed, reinitialize position
 - `1` 
     - Toggle grid
+- `Escape`
+    - Toggle debug mode
 
 # Ouverture
 

@@ -105,7 +105,7 @@ class Map:
                 self.grille[k] = self.grille[k] + [None for _ in range(j - self.dim[1] + 1)]
         self.dim = (len(self.grille), len(self.grille[0]))
         self.grille[i][j] = tuile
-        self.dump_img()
+        # self.dump_img()
 
         return (j + self.deplacement_map[1], i + self.deplacement_map[0])
 
@@ -141,7 +141,7 @@ class Map:
                                 c1+j*unit + taille*.75, 
                                 remplissage='beige', 
                                 couleur='orange',
-                                epaisseur=5)
+                                epaisseur=0)
                         fltk.texte(c0+i*unit - taille * 2,
                             c1+j*unit - taille, self.grille[i][j], taille = taille, couleur='orange')
                 else:
@@ -281,13 +281,14 @@ class Map:
         """
         options = []
         for tuile in self.tuiles.keys():
-            if self.emplacement_valide(i, j, tuile):
+            # Prend soin d'ajuster en fonction du déplacement
+            if self.emplacement_valide(i - self.deplacement_map[1], j - self.deplacement_map[0], tuile):
                 options.append(tuile)
         return options
 
 if __name__ == '__main__':
     map = Map([
         [None, None],
-        ['FFMM', None]
+        [None, 'PRRR']
     ])
-    print(map.emplacement_valide(0,0, 'FPFF'))
+    print(map.emplacement_valide(2,1, 'FPFF'))

@@ -26,10 +26,10 @@ def mainloop():
     tile_memo = set()
 
     map = Map([[None for _ in range(2)] for i in range(2)])
-    # map = Map([
-    #     ['PRRP', 'RRPP'],
-    #     ['PPRR', 'RPPR']
-    # ])
+    map = Map([
+        ['SHRH', None],
+        [None, None]
+    ])
     # map.dump_img()
 
     # Appuyer sur `Escape` pour toggle le mode debug
@@ -71,7 +71,6 @@ def mainloop():
 
         # map 
         map.display_map(unit, (w)//2, (h)//2, zoom=zoom, deplacement_map=deplacement_map)
-        # fltk.image(w//2, h//2, 'map.png', ancrage='center', hauteur=unit*dim[1], largeur=unit*dim[0])
         if grid:
             ui.grid(dim, zoom=zoom)
 
@@ -155,7 +154,6 @@ def mainloop():
             if dragging:
                 dragged_object = None
                 dragging = False
-                # last_x, last_y = None, None
         elif ev[0] == 'ClicDroit':
             clicked = set(hovered)
             x, y = fltk.abscisse(ev), fltk.ordonnee(ev)
@@ -164,7 +162,6 @@ def mainloop():
                 if keys[0] == 'grid':
                     tuile = [int(n) for n in tag.split('_')[1].split('*')]
                     map.edit_tile(tuile[1], tuile[0], None)
-                    # ui.change_state('popup')
                     fltk.efface_tout()
                     draw()
 
@@ -233,6 +230,12 @@ def mainloop():
             # Remove selected
             elif touche == 'Escape':
                 map.debug = not map.debug
+                fltk.efface_tout()
+                draw()
+
+            # Toggle riviere naturelle
+            elif touche == 'Escape':
+                map.riviere = not map.riviere
                 fltk.efface_tout()
                 draw()
 

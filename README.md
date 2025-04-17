@@ -91,6 +91,8 @@ Un événement `LacheGauche` a été ceéé, utilisant l'événement `<ButtonRel
     - Toggle debug mode
 - `S`
     - Dump image as `map.png` in parent directory. Does not resize.
+- `R`
+    - Toggle riviere naturelle
 
 # Ouverture
 

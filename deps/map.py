@@ -250,6 +250,9 @@ class Map:
             ( 0, 1, 3, 1),
             ( 0,-1, 1, 3) 
         ]
+
+        # TODO : Mémoiser l'obtention des voisins
+
         voisins = []
 
         for dr, dc, index_voisin, index_tuile in dir:
@@ -291,38 +294,61 @@ class Map:
         unfiltered_voisin = self.get_vois(i,j, nom_tuile)
         voisins = [v for v in unfiltered_voisin if v not in visited]
 
-        if len(unfiltered_voisin) == 0:
-            '''
-            Si pas de voisin <=> fin (ou début) de rivière
-            Il doit s'agir, au choix de:
-            1. une case aux extrémités de la grille (fin)
-            2. montagne (début)
-            3. mer (fin)
-            '''
-            # Cas 1
-            if i == 0 or i == self.dim[0] - 1 or j == 0 or j == self.dim[1] - 1:
-                return True
-            # Cas 2
-            if 'M' in nom_tuile:
-                return (0,1)
-            # Cas 3
-            if 'S' in nom_tuile:
-                return (1,0)
-            
-            return False
-        
-        elif len(voisins) > 1:
+        if len(voisins) > 0:
+            acc = (0,0,0)
             for voisin in voisins:
                 if voisin not in visited:
                     '''
                     La rivière ne doit pas se diviser.
                     Deux rivières peuvent se rejoindre.
                     Il suffit que deux branches d'une rivière aient deux sources.
+
+                    # Cas erronés
+                    1. Extremité ni source / mer / fin <= boucle
+                    2. Pas de source (considérant extreme comme source)
                     '''
-                    if self.riviere_valide(voisin[0], voisin[1], nom_tuile, visited) != (0,1):
+                    r = self.riviere_valide(voisin[0], voisin[1], nom_tuile, visited)
+                    
+                    if not r:
                         return False
 
-        return True#self.riviere_valide(i, j, nom_tuile, visited)
+                    x,y,z = r
+
+                    # Cas 1
+                    if sum([x,y,z]) == 0:
+                        return False
+                    
+                    acc = (x + acc[0], y + acc[1], z + acc[2])
+
+            montagnes = acc[1]
+            mers = acc[0]
+            ext = acc[2]
+            m, M = min(mers, montagnes), max(mers, montagnes)
+            if M > m + ext:
+                return False
+
+
+        if len(unfiltered_voisin) == 0:
+            '''
+            Si pas de voisin <=> fin (ou début) de rivière
+            Il doit s'agir, au choix de:
+            1. montagne (début)
+            2. mer (fin)
+            3. une case aux extrémités de la grille (fin)
+            '''
+            # Cas 1
+            if 'M' in nom_tuile:
+                return (0,1,0)
+            # Cas 2
+            if 'G' in nom_tuile or 'H' in nom_tuile or 'B' in nom_tuile or 'D' in nom_tuile:
+                return (1,0,0)
+            # Cas 3
+            if i == 0 or i == self.dim[0] - 1 or j == 0 or j == self.dim[1] - 1:
+                return (0,0,1)
+            
+            return False
+        
+        return (0,0,0)
 
 
 
@@ -348,7 +374,7 @@ class Map:
 
 if __name__ == '__main__':
     map = Map([
-        ['PRRP', 'RRPP'],
-        ['PPRR', 'RPPR']
+        ['SHRH', 'RPGB'],
+        [None, None],
     ])
-    print(map.get_vois(1,1, 'RPPR'))
+    print(map.get_vois(1,0, 'RPGB'))

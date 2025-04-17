@@ -252,8 +252,10 @@ class Map:
         ]
         voisins = []
 
-        for dx, dy, index_voisin, index_tuile in dir:
-            ni, nj = i + dx, j + dy
+        for dr, dc, index_voisin, index_tuile in dir:
+            ni, nj = j + dc, i + dr
+
+            # Ignore les voisins en dehors de la grille (car <=> None)
             if 0 <= ni < self.dim[0] and 0 <= nj < self.dim[1]:
                 voisin = self.grille[ni][nj]
 
@@ -285,32 +287,27 @@ class Map:
             visited = set()
 
         visited.add((i,j))
-        
-        voisins = [v for v in self.get_vois(i,j, nom_tuile) if v not in visited]
 
+        unfiltered_voisin = self.get_vois(i,j, nom_tuile)
+        voisins = [v for v in unfiltered_voisin if v not in visited]
 
-        if len(voisins) == 0:
+        if len(unfiltered_voisin) == 0:
             '''
             Si pas de voisin <=> fin (ou début) de rivière
             Il doit s'agir, au choix de:
             1. une case aux extrémités de la grille (fin)
             2. montagne (début)
             3. mer (fin)
-
-            On profite du fait que bool(n) avec n un int <=> True.
-            On note:
-            - 1 pour vrai + source
-            - 2 pour vrai + sans source
             '''
             # Cas 1
             if i == 0 or i == self.dim[0] - 1 or j == 0 or j == self.dim[1] - 1:
                 return True
             # Cas 2
             if 'M' in nom_tuile:
-                return 1 
+                return (0,1)
             # Cas 3
             if 'S' in nom_tuile:
-                return 2
+                return (1,0)
             
             return False
         
@@ -322,10 +319,10 @@ class Map:
                     Deux rivières peuvent se rejoindre.
                     Il suffit que deux branches d'une rivière aient deux sources.
                     '''
-                    if self.riviere_valide(voisin[0], voisin[1], visited) != 1:
+                    if self.riviere_valide(voisin[0], voisin[1], nom_tuile, visited) != (0,1):
                         return False
-                
-        return self.riviere_valide(voisins[0][0], voisins[0][1], visited)
+
+        return True#self.riviere_valide(i, j, nom_tuile, visited)
 
 
 
@@ -354,4 +351,4 @@ if __name__ == '__main__':
         ['PRRP', 'RRPP'],
         ['PPRR', 'RPPR']
     ])
-    print(map.emplacement_valide(2,1, 'FPFF'))
+    print(map.get_vois(1,1, 'RPPR'))

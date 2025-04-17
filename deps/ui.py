@@ -254,7 +254,7 @@ def create_popup(key:list[str, bool],
         taille = floor((min(width, height) - r) // len(content))
         x, y = c[0] + r, c[1] + r
         x2, y2 = c[0] + (width - r), c[1] + (height - r)
-        fltk.texte(x2 / 2 - taille * 2, y2 / 2, content, couleur='#aaa', taille=taille, tag=key)
+        fltk.texte(x, y2 / 2, content, couleur='#aaa', taille=taille, tag=key, police='Helvetica')
         return
 
 

@@ -25,20 +25,29 @@ def mainloop():
     global tile_memo
     tile_memo = set()
 
-    # map = Map([[None for _ in range(2)] for i in range(2)])
-    map = Map([
-        ['PRRP', 'RRPP'],
-        ['PPRR', 'RPPR']
-    ])
+    map = Map([[None for _ in range(2)] for i in range(2)])
+    # map = Map([
+    #     ['PRRP', 'RRPP'],
+    #     ['PPRR', 'RPPR']
+    # ])
     # map.dump_img()
 
+    # Appuyer sur `Escape` pour toggle le mode debug
     map.debug = False
+    # Toggle les rivières naturelles si True
+    # /!\ Gourmand en ressources, risques de ralentissements.
     map.riviere = True
 
     
     fltk.cree_fenetre(w, h, redimension=True)
 
     def draw_popup(key:str) -> None:
+        '''
+        Dessine des popup en fonction de leur clé.
+        Couplée à la fonction erase_popup, ces deux fonctions permettent 
+        de faire apparaître et disparaître des fenêtres (notamment pour les déplacer)
+        sans redessiner le reste.
+        '''
         if key == 'popup':
             ui.create_popup(['popup', False], 
                             "Tile Picker", 
@@ -47,8 +56,8 @@ def mainloop():
                             max_width=500, max_height=500)
         if key == 'saved':
             ui.create_popup(['saved', False], 
-                            "Saved", 
-                            content='Map saved')
+                            "System", 
+                            content='Map saved as `map.png`')
 
     def draw():
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
@@ -82,6 +91,9 @@ def mainloop():
     last_x, last_y = None, None
 
     def erase_popup(key):
+        '''
+        Efface les popup en fonction de leur clé.
+        '''
         global tile_memo
         for p in ['', 'close_','drag_','expand_','xclose_','xexpand_','blank_']:
             fltk.efface(p+key)

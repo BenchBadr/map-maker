@@ -355,7 +355,7 @@ class Map:
                 # Si la riviere se prolonge en des None
                 for idc in deg_idc:
                     if (ni + dir[idc][0], nj + dir[idc][1]) == (i,j):
-                        continue
+                        continue # On ne teste jamais avec None
                     if self.grille[nj + dir[idc][1]][ni + dir[idc][0]] is None:
                         return (3, 1)
             return False
@@ -370,6 +370,7 @@ class Map:
         m, M = min(acc_global[0], acc_global[1]), max(acc_global[0], acc_global[1])
         ext = acc_global[2]
 
+        print(analyse_ext((0,1)), acc_global)
         if not(m == 0 and M == 0):
             if M > m + ext:
                 return False
@@ -386,8 +387,7 @@ class Map:
         #     return acc
 
                 
-                
-        
+
         return True
         
 

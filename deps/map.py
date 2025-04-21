@@ -302,65 +302,91 @@ class Map:
         3. une case aux extrémités de la grille (fin)
             3.1. None <=> Extremité
         """
+
         parcours = []
         graph_riv = self.riviere_parcours(i, j, nom_tuile, parcours)
-        if graph_riv is False:
-            return False
-        # On compte les cas
 
+        if graph_riv is False:
+            # On exclut les boucles
+            return False
+        
         if len(parcours) == 1:
             return True
-        
-        analyse_tuile_memo = {}
 
-        def analyse_tuile(tuile):
-            if tuile in analyse_tuile_memo:
-                return analyse_tuile_memo[tuile]
-            
-            acc = [0,0,0]
+        def analyse_ext(coords:tuple) -> tuple[int, int, int]:
+            """
+            Vérifie si la tuile actuelle se conforme à l'un des 3 cas susmentionnés
+            Args:
+                coords: Coordonnées de la case
+            Returns:
+                (x,y,z)
+                x : mer
+                y : montagne
+                z : extremité
+            """
 
-            # Cas 1
-            if 'G' in tuile_test or 'H' in tuile_test or 'B' in tuile_test or 'D' in tuile_test:
-                acc[0] += 1
+            ni, nj = coords
 
-            # Cas 2
-            elif 'M' in tuile_test:
-                acc[1] += 1
-            
-            # Cas 3
-            elif nj == 0 or nj == self.dim[0] - 1 or ni == 0 or ni == self.dim[1] - 1:
-                deg = len(self.get_vois(ni, nj, (i,j), tuile_test))
-                if deg <= 1:
-                    acc[2] += 1
-
-            return acc
-        
-        acc = [0,0,0]
-        for case in parcours:
-            ni, nj = case
-            
-            # Cas de la tuile théorique
-            if (ni, nj) == (i, j):
-                tuile_test = nom_tuile
+            # Définir en prenant en compte le tile de test
+            if coords == (i, j):
+                tile = nom_tuile
             else:
-                tuile_test = self.grille[nj][ni]
+                tile = self.grille[nj][ni]
 
-            res = analyse_tuile(case)
-            if res != [0,0,0]:
-                acc[0] += res[0]
-                acc[1] += res[1]
-                acc[2] += res[2]
+            dir = [(-1, 0),( 0, 1),( 1, 0),( 0,-1)]
+            deg_idc = [i for i,c in enumerate(tile) if c == 'R']
+
+            # Compte
+            if 'M' in tile:
+                return (2, 1)
+            elif 'G' in tile or 'H' in tile or 'B' in tile or 'D' in tile:
+                return (1, 1)
+            
+            elif (ni == 0 or ni == self.dim[0] - 1 or nj == 0 or nj == self.dim[1] - 1) and \
+                 ((ni == 0 and 0 in deg_idc) or \
+                  (ni == self.dim[0] - 1 and 2 in deg_idc) or \
+                  (nj == 0 and 3 in deg_idc) or \
+                  (nj == self.dim[1] - 1 and 1 in deg_idc)):
+                # S'assure que la riviere se prolonge en dehors de la carte
+                # Exclut de fait les cas comme des virages
+                    return (3, 1)
             else:
-                deg = len(self.get_vois(ni, nj, (i,j), tuile_test))
-                # + 1 pour l'antécédent
-                if deg > 2 and acc[1] + acc[2] < deg - 1:
-                    return False
-        m, M = min(acc[0], acc[1]), max(acc[0], acc[1])
-        ext = acc[2]
-        if m + M == 0:
-            return True
-        if M > m + ext:
+                # Cas 3.1
+                # Si la riviere se prolonge en des None
+                for idc in deg_idc:
+                    if (ni + dir[idc][0], nj + dir[idc][1]) == (i,j):
+                        continue
+                    if self.grille[nj + dir[idc][1]][ni + dir[idc][0]] is None:
+                        return (3, 1)
             return False
+        
+        acc_global = [0,0,0]
+        for case in parcours:
+            acc_case = analyse_ext(case)
+            if acc_case:
+                acc_global[acc_case[0] - 1] += acc_case[1]
+
+
+        m, M = min(acc_global[0], acc_global[1]), max(acc_global[0], acc_global[1])
+        ext = acc_global[2]
+
+        if not(m == 0 and M == 0):
+            if M > m + ext:
+                return False
+
+        # def remontee_etat(start:tuple):
+        #     acc = analyse_ext(start)
+        #     if start not in graph_riv:
+        #         # pas de parents
+        #         return acc
+        #     acc = analyse_ext(start)
+        #     for parent in graph_riv[start]:
+        #         acc_parent = remontee_etat(parent)
+        #         acc = (acc[0] + acc_parent[0], acc[1] + acc_parent[1], acc[2] + acc_parent[2])
+        #     return acc
+
+                
+                
         
         return True
         
@@ -372,10 +398,12 @@ class Map:
         graph_riv = {}
         while s:
             tile, parent = s.pop()
+
             if parent:
-                if parent not in graph_riv:
-                    graph_riv[parent] = []
-                graph_riv[parent].append(tile)
+                if tile not in graph_riv:
+                    graph_riv[tile] = []
+                graph_riv[tile].append(parent)
+
             ti, tj = tile
             
             if tile not in visited:
@@ -384,12 +412,12 @@ class Map:
             parcours.append((ti, tj))
 
             voisins = self.get_vois(ti, tj, (i,j), nom_tuile)
+
             for voisin in voisins:
                 if voisin not in visited:
                     s.append((voisin, tile))
                 elif voisin != parent:
                     return False
-            
         return graph_riv
 
 

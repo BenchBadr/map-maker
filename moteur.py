@@ -27,8 +27,9 @@ def mainloop():
 
     # map = Map([[None for _ in range(2)] for i in range(2)])
     map = Map([
-        ['RRRP', 'RRPP'],
-        ['PPRR', 'RPPR'],
+        ['MRPP', None, None],
+        ['PRRR', None, None],
+        [None, None, None]
     ])
 
 

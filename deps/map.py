@@ -265,7 +265,6 @@ class Map:
         if tuile_act is None:
             return []
 
-        print('source', (i,j),tuile_act, 'simulating', tested, nom_tuile)
         for index_tuile, (dc, dr, index_voisin) in enumerate(dir):
             ni, nj = i + dc, j + dr
 
@@ -278,15 +277,9 @@ class Map:
                 else:
                     voisin = self.grille[nj][ni]
 
-                
-
-                print('-'*20)
-                print(nj, ni, voisin)
 
                 if voisin is None:
                     continue
-
-                print(tuile_act[index_tuile], voisin[index_voisin])
 
 
                 
@@ -304,27 +297,86 @@ class Map:
         Renvoie le nombre d'extremités / sources / mers de la rivière en fonction du parcours
         Si pas de voisin <=> fin (ou début) de rivière
         Il doit s'agir, au choix de:
-        1. montagne (début)
-        2. mer (fin)
+        1. mer (fin)
+        2. montagne (début)
         3. une case aux extrémités de la grille (fin)
             3.1. None <=> Extremité
         """
         parcours = []
-        if not self.riviere_parcours(i, j, nom_tuile, parcours):
+        graph_riv = self.riviere_parcours(i, j, nom_tuile, parcours)
+        if graph_riv is False:
             return False
-        else:
-            print(nom_tuile, parcours)
+        # On compte les cas
+
+        if len(parcours) == 1:
             return True
+        
+        analyse_tuile_memo = {}
+
+        def analyse_tuile(tuile):
+            if tuile in analyse_tuile_memo:
+                return analyse_tuile_memo[tuile]
+            
+            acc = [0,0,0]
+
+            # Cas 1
+            if 'G' in tuile_test or 'H' in tuile_test or 'B' in tuile_test or 'D' in tuile_test:
+                acc[0] += 1
+
+            # Cas 2
+            elif 'M' in tuile_test:
+                acc[1] += 1
+            
+            # Cas 3
+            elif nj == 0 or nj == self.dim[0] - 1 or ni == 0 or ni == self.dim[1] - 1:
+                deg = len(self.get_vois(ni, nj, (i,j), tuile_test))
+                if deg <= 1:
+                    acc[2] += 1
+
+            return acc
+        
+        acc = [0,0,0]
+        for case in parcours:
+            ni, nj = case
+            
+            # Cas de la tuile théorique
+            if (ni, nj) == (i, j):
+                tuile_test = nom_tuile
+            else:
+                tuile_test = self.grille[nj][ni]
+
+            res = analyse_tuile(case)
+            if res != [0,0,0]:
+                acc[0] += res[0]
+                acc[1] += res[1]
+                acc[2] += res[2]
+            else:
+                deg = len(self.get_vois(ni, nj, (i,j), tuile_test))
+                # + 1 pour l'antécédent
+                if deg > 2 and acc[1] + acc[2] < deg - 1:
+                    return False
+        m, M = min(acc[0], acc[1]), max(acc[0], acc[1])
+        ext = acc[2]
+        if m + M == 0:
+            return True
+        if M > m + ext:
+            return False
+        
+        return True
+        
 
 
     def riviere_parcours(self, i:int, j:int, nom_tuile:str, parcours:list) -> bool:
         visited = set()
         s = [((i, j), None)]
+        graph_riv = {}
         while s:
             tile, parent = s.pop()
-
+            if parent:
+                if parent not in graph_riv:
+                    graph_riv[parent] = []
+                graph_riv[parent].append(tile)
             ti, tj = tile
-            print('*'*20)
             
             if tile not in visited:
                 visited.add((ti, tj))
@@ -332,14 +384,13 @@ class Map:
             parcours.append((ti, tj))
 
             voisins = self.get_vois(ti, tj, (i,j), nom_tuile)
-
-            print('voisins', voisins)
             for voisin in voisins:
                 if voisin not in visited:
                     s.append((voisin, tile))
                 elif voisin != parent:
                     return False
-        return True
+            
+        return graph_riv
 
 
 

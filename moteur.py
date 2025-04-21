@@ -26,6 +26,8 @@ def mainloop():
     global tile_memo
     tile_memo = set()
 
+    memo_coords = (0,0)
+
     current_page = 0
     open_mode = True
 
@@ -60,7 +62,12 @@ def mainloop():
                             save.file_selector,
                             args_func={'current_page':current_page, 'open_mode': open_mode},
                             width=.8, height=.8)
-
+        if key == 'deco':
+            ui.create_popup(['deco', False], 
+                            "Decoration Picker", 
+                            map.deco_selector,
+                            args_func={'tile':selected_tile, 'coords':memo_coords, 'zoom':zoom},
+                            max_width=500, max_height=500)
     def draw():
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
         dim = map.dim
@@ -83,6 +90,7 @@ def mainloop():
         # popup
         draw_popup('popup')
         draw_popup('saved')
+        draw_popup('deco')
 
     draw()
 
@@ -171,6 +179,7 @@ def mainloop():
         elif ev[0] == "ClicGauche":
             clicked = set(hovered)
             x, y = fltk.abscisse(ev), fltk.ordonnee(ev)
+
             for tag in clicked:
                 keys = tag.split('_')
 
@@ -193,7 +202,11 @@ def mainloop():
                         if ui.none_active():
                             tuile = [int(n) for n in tag.split('_')[1].split('*')]
                             selected_tile = tuile
-                            ui.change_state('popup')
+                            if 0 <= selected_tile[1] < map.dim[0] and 0 <= selected_tile[0] < map.dim[1] and  map.grille[selected_tile[1]][selected_tile[0]] is not None:
+                                memo_coords = (x,y)
+                                ui.change_state('deco')
+                            else:
+                                ui.change_state('popup')
             fltk.efface_tout()
             draw()
 

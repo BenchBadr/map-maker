@@ -155,9 +155,18 @@ class Map:
         pages = ceil(s / (n_x * n_y))
 
         if pages == 0:
-            texte = 'Impossible'
-            taille = floor(min(abs(x - x2), abs(y - y2)) // len(texte))
-            fltk.texte(x+taille*2, floor(y + abs(y - y2) / 2 - taille), texte, couleur='#8a4641', taille=taille, tag=key)
+            c2 = x, y + unit, x2, y2 // 2
+            sub_page = x2 - x, y2 - y + unit
+            a,b,r,rat = c2[0]+sub_page[0]//2, c2[1]+sub_page[1]//2, min(sub_page)//4, .6
+            # Texte
+            t1 = 'Placement impossible'
+            t2 = 'Supprimez des tuiles puis réessayez'
+
+            taille1 = int((5*r)//len(t1))
+            taille2 = int((5*r)//len(t2))
+
+            fltk.texte(a - taille1*len(t1)*.3, c2[1], t1, couleur='white', tag=key, taille=taille1)
+            fltk.texte(a - taille2*len(t2)*.3, c2[1] + taille1 * 2, t2, couleur='#888', tag=key, taille=taille2)
             return
 
         self.current_page = min(max(0,self.current_page), pages - 1)
@@ -443,6 +452,56 @@ class Map:
             if self.emplacement_valide(i - self.deplacement_map[1], j - self.deplacement_map[0], tuile):
                 options.append(tuile)
         return options
+    
+    def deco_selector(self, key, x, y, x2, y2, args_func:dict) -> None:
+        """
+        Dessine la grille de sélection des tuiles.
+
+        Args:
+            key: La clé de la fenêtre
+            (x,y,x2,y2): Les coordonnées de la fenêtre de dessin (du rectangle de la main area)
+            args_func: dictionnaire passant les arguments de la fonction, ici, utilisé pour obtenir le tile selectionné
+        """
+        tile = args_func['tile']
+        coords = args_func['coords']
+        zoom = args_func['zoom']
+
+        nom_tuile = self.grille[tile[1]][tile[0]]
+
+        h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
+        dim = self.dim
+        size = min(w, h)
+        unit = size//max(dim) * zoom
+
+        if nom_tuile not in ['SSSS', 'PPPP']:
+            c2 = x, y + unit, x2, y2 // 2
+            sub_page = x2 - x, y2 - y + unit
+            a,b,r,rat = c2[0]+sub_page[0]//2, c2[1]+sub_page[1]//2, min(sub_page)//4, .6
+            # Texte
+            t1 = 'Pas de décoration'
+            t2 = 'Aucun décor n\'est disponible pour cette tuile.'
+
+            taille1 = int((5*r)//len(t1))
+            taille2 = int((5*r)//len(t2))
+
+            fltk.texte(a - taille1*len(t1)*.3, c2[1] // 2, t1, couleur='white', tag=key, taille=taille1)
+            fltk.texte(a - taille2*len(t2)*.3, c2[1] // 2 + taille1 * 2, t2, couleur='#888', tag=key, taille=taille2)
+            return
+
+        pad = (w - (unit * dim[0])) / 2
+        coords = (coords[0] - pad, coords[1] - pad)
+        coords = (coords[0]/unit, coords[1]/unit)
+        
+        biome = {'SSSS':'mer', 'PPPP':'terre'}[nom_tuile]
+        deco_possibles = list(self.deco_tiles[biome].keys())
+
+
+        print(deco_possibles)
+    
+        print(nom_tuile, coords)
+
+    
+
 
 if __name__ == '__main__':
     map = Map([

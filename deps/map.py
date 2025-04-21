@@ -237,118 +237,109 @@ class Map:
             return self.riviere_valide(i, j, nom_tuile)
         return True
     
-    def get_vois(self, i:int,j:int, nom_tuile:str) -> list[tuple[int,int]]:
+    def get_vois(self, i:int,j:int, tested:tuple, nom_tuile:str) -> list[tuple[int,int]]:
         '''
         Renvoie les cases voisines où se poursuit la rivière
         '''
         dir =  [
             # Vertical
-            (-1, 0, 2, 0),
-            ( 1, 0, 0, 2), 
-
-            # Horizontal
-            ( 0, 1, 3, 1),
-            ( 0,-1, 1, 3) 
+            (-1, 0, 2),
+            ( 0, 1, 3),
+            ( 1, 0, 0),
+            (0, -1 ,1) 
         ]
 
         # TODO : Mémoiser l'obtention des voisins
 
         voisins = []
 
-        for dr, dc, index_voisin, index_tuile in dir:
-            ni, nj = j + dc, i + dr
+        if nom_tuile is None:
+            return []
+        
+        # tuile actuelle
+        if (i, j) == tested:
+            tuile_act = nom_tuile
+        else:
+            tuile_act = self.grille[j][i]
+
+        if tuile_act is None:
+            return []
+
+        print('source', (i,j),tuile_act, 'simulating', tested, nom_tuile)
+        for index_tuile, (dc, dr, index_voisin) in enumerate(dir):
+            ni, nj = i + dc, j + dr
 
             # Ignore les voisins en dehors de la grille (car <=> None)
-            if 0 <= ni < self.dim[0] and 0 <= nj < self.dim[1]:
-                voisin = self.grille[ni][nj]
+            if 0 <= ni < self.dim[1] and 0 <= nj < self.dim[0]:
+
+                # valeur théorique non réduite au tile actuel
+                if (ni, nj) == tested:
+                    voisin = nom_tuile
+                else:
+                    voisin = self.grille[nj][ni]
+
+                
+
+                print('-'*20)
+                print(nj, ni, voisin)
 
                 if voisin is None:
                     continue
 
+                print(tuile_act[index_tuile], voisin[index_voisin])
+
+
+                
                 # Ici, on check la correspondance de biômes adjacents
                 # Mais specifiquement pour R
                 if voisin[index_voisin] == 'R':
-                    if voisin[index_voisin] == nom_tuile[index_tuile]:
+                    if tuile_act[index_tuile] == voisin[index_voisin]:
                         voisins.append((ni, nj))
+
         return voisins
 
-    
-        
-    def riviere_valide(self, i:int, j:int, nom_tuile:str, visited:set = None) -> bool:
+
+    def riviere_valide(self, i:int, j:int, nom_tuile:str) -> bool:
         """
-        Vérifie si la tuile est valide pour la rivière.
-
-        Args:
-            i: Indice i à vérifier.
-            j: Indice j à vérifier.
-            nom_tuile: Nom de la nouvelle tuile à vérifier.
-        Returns:
-            bool: True ou False en fonction de si la nouvelle tuile est plaçable ou non.
+        Renvoie le nombre d'extremités / sources / mers de la rivière en fonction du parcours
+        Si pas de voisin <=> fin (ou début) de rivière
+        Il doit s'agir, au choix de:
+        1. montagne (début)
+        2. mer (fin)
+        3. une case aux extrémités de la grille (fin)
+            3.1. None <=> Extremité
         """
+        parcours = []
+        if not self.riviere_parcours(i, j, nom_tuile, parcours):
+            return False
+        else:
+            print(nom_tuile, parcours)
+            return True
 
-        if visited is None:
-            visited = set()
 
-        visited.add((i,j))
+    def riviere_parcours(self, i:int, j:int, nom_tuile:str, parcours:list) -> bool:
+        visited = set()
+        s = [((i, j), None)]
+        while s:
+            tile, parent = s.pop()
 
-        unfiltered_voisin = self.get_vois(i,j, nom_tuile)
-        voisins = [v for v in unfiltered_voisin if v not in visited]
+            ti, tj = tile
+            print('*'*20)
+            
+            if tile not in visited:
+                visited.add((ti, tj))
 
-        if len(voisins) > 0:
-            acc = (0,0,0)
+            parcours.append((ti, tj))
+
+            voisins = self.get_vois(ti, tj, (i,j), nom_tuile)
+
+            print('voisins', voisins)
             for voisin in voisins:
                 if voisin not in visited:
-                    '''
-                    La rivière ne doit pas se diviser.
-                    Deux rivières peuvent se rejoindre.
-                    Il suffit que deux branches d'une rivière aient deux sources.
-
-                    # Cas erronés
-                    1. Extremité ni source / mer / fin <= boucle
-                    2. Pas de source (considérant extreme comme source)
-                    '''
-                    r = self.riviere_valide(voisin[0], voisin[1], nom_tuile, visited)
-                    
-                    if not r:
-                        return False
-
-                    x,y,z = r
-
-                    # Cas 1
-                    if sum([x,y,z]) == 0:
-                        return False
-                    
-                    acc = (x + acc[0], y + acc[1], z + acc[2])
-
-            montagnes = acc[1]
-            mers = acc[0]
-            ext = acc[2]
-            m, M = min(mers, montagnes), max(mers, montagnes)
-            if M > m + ext:
-                return False
-
-
-        if len(unfiltered_voisin) == 0:
-            '''
-            Si pas de voisin <=> fin (ou début) de rivière
-            Il doit s'agir, au choix de:
-            1. montagne (début)
-            2. mer (fin)
-            3. une case aux extrémités de la grille (fin)
-            '''
-            # Cas 1
-            if 'M' in nom_tuile:
-                return (0,1,0)
-            # Cas 2
-            if 'G' in nom_tuile or 'H' in nom_tuile or 'B' in nom_tuile or 'D' in nom_tuile:
-                return (1,0,0)
-            # Cas 3
-            if i == 0 or i == self.dim[0] - 1 or j == 0 or j == self.dim[1] - 1:
-                return (0,0,1)
-            
-            return False
-        
-        return (0,0,0)
+                    s.append((voisin, tile))
+                elif voisin != parent:
+                    return False
+        return True
 
 
 
@@ -374,7 +365,6 @@ class Map:
 
 if __name__ == '__main__':
     map = Map([
-        ['SHRH', 'RPGB'],
-        [None, None],
+        ['RRRP', 'RRPP'],
+        ['PPRR', 'RPPR'],
     ])
-    print(map.get_vois(1,0, 'RPGB'))

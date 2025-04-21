@@ -15,5 +15,24 @@ def cree_dico(path:str) -> dict:
         for tuile in tuiles
     }
 
+def cree_deco(path:str) -> dict:
+    """
+    Renvoie un dictionnaire permettant l'accès aux décorations.
+    
+    Args:
+        path (str): le chemin vers le dossier contenant les dossiers de décoration.
+    Returns:
+        dict: {mer:{serpent:'mer/serpent.png' ...}}
+    """
+    deco_type = os.listdir(path)
+    res = {biome: {} for biome in deco_type}
+    for biome in deco_type:
+        deco = os.listdir(path + '/' + biome)
+        res[biome] = {
+            deco[:-4]:path + '/' + biome + '/' + deco 
+            for deco in deco
+        }
+    return res
 if __name__ == '__main__':
-    print(cree_dico('tuiles'))
+    # print(cree_dico('deps/assets/tuiles'))
+    print(cree_deco('deps/assets/decors'))

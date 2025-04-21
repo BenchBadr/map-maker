@@ -3,7 +3,7 @@ try:
     from cree_dico import cree_dico
     import modules.fltk as fltk,modules.fltk_addons as addons
 except ImportError:
-    from deps.cree_dico import cree_dico
+    from deps.cree_dico import cree_dico, cree_deco
     import deps.modules.fltk as fltk,deps.modules.fltk_addons as addons
 addons.init(fltk)
 from math import floor, ceil
@@ -17,12 +17,15 @@ class Map:
         """
         if grille is None:
             # Crée une grille vide de 10x10
-            self.grille = [[None for _ in range(10)] for _ in range(10)]
+            self.grille = [[None for _ in range(2)] for _ in range(2)]
         else:
             self.grille = grille
+        self.deco = {}
+
         self.dim = len(self.grille), len(self.grille[0])
         import os
         self.tuiles = cree_dico('deps/assets/tuiles')
+        self.deco_tiles = cree_deco('deps/assets/decors')
 
 
         # used for tile picker
@@ -31,7 +34,7 @@ class Map:
         self.debug = False
         self.riviere = False
 
-    def dump_img(self) -> PIL.Image:
+    def dump_img(self, path) -> PIL.Image:
         """
         Renvoie une image représentant la carte.
         Prend soin de ne pas la recréer s'il  suffit de faire des modifications.
@@ -50,7 +53,7 @@ class Map:
                     white_square = PIL.Image.new('RGB', (100, 100), color=(128, 128, 128))
                     image.paste(white_square, (i*100, j*100))
 
-        image.save('map.png')
+        image.save(path)
         return image
     
     def edit_tile(self, i:int, j:int, tuile:str) -> None:
@@ -370,7 +373,6 @@ class Map:
         m, M = min(acc_global[0], acc_global[1]), max(acc_global[0], acc_global[1])
         ext = acc_global[2]
 
-        print(analyse_ext((0,1)), acc_global)
         if not(m == 0 and M == 0):
             if M > m + ext:
                 return False

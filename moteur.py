@@ -1,6 +1,7 @@
 import deps.modules.fltk as fltk,deps.modules.fltk_addons as addons
 from deps.map import Map
 import deps.ui as ui
+import deps.save_manager as save
 addons.init(fltk)
 from math import floor
 
@@ -25,12 +26,10 @@ def mainloop():
     global tile_memo
     tile_memo = set()
 
-    # map = Map([[None for _ in range(2)] for i in range(2)])
-    map = Map([
-        ['MRPP', None, None],
-        ['PRRR', None, None],
-        [None, None, None]
-    ])
+    current_page = 0
+    open_mode = True
+
+    map = Map()
 
 
     # Appuyer sur `Escape` pour toggle le mode debug
@@ -57,8 +56,10 @@ def mainloop():
                             max_width=500, max_height=500)
         if key == 'saved':
             ui.create_popup(['saved', False], 
-                            "System", 
-                            content='Map saved as `map.png`')
+                            "Save manager",
+                            save.file_selector,
+                            args_func={'current_page':current_page, 'open_mode': open_mode},
+                            width=.8, height=.8)
 
     def draw():
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
@@ -235,28 +236,33 @@ def mainloop():
                 draw()
 
             # Toggle riviere naturelle
-            elif touche == 'Escape':
+            elif touche.lower() == 'r':
                 map.riviere = not map.riviere
                 fltk.efface_tout()
                 draw()
 
+
             # Save map as picture `./map.png`
-            elif touche.lower() == 's':
+            elif touche.lower() == 's' or touche.lower() == 'o':
+                open_mode = False
+                if touche.lower() == 'o':
+                    open_mode = True
+        
                 if not ui.get_state('saved'):
                     ui.change_state('saved')
                     draw_popup('saved')
-                    map.dump_img()
 
             # Déplacements de la carte
             elif touche in ['Left', 'Right', 'Up', 'Down']:
-                # Gauche
-                if touche == 'Left':
-                    deplacement_map = (deplacement_map[0] + 1, deplacement_map[1])
-                
-                # Droite
-                elif touche == 'Right':
-                    deplacement_map = (deplacement_map[0] - 1, deplacement_map[1])
-                
+                if not ui.get_state('saved'):
+                    # Gauche
+                    if touche == 'Left':
+                        deplacement_map = (deplacement_map[0] + 1, deplacement_map[1])
+                    
+                    # Droite
+                    elif touche == 'Right':
+                        deplacement_map = (deplacement_map[0] - 1, deplacement_map[1])
+                    
                 if ui.none_active():
                     # Haut
                     if touche == 'Up':
@@ -282,6 +288,26 @@ def mainloop():
                     map.current_page -= 1
                 erase_popup('popup')
                 draw_popup('popup')
+
+            if ui.get_state('saved'):
+                if touche in ['Left', 'Right']:
+                    if touche == 'Left':
+                        current_page -= 1
+                    elif touche == 'Right':
+                        current_page += 1
+                    erase_popup('saved')
+                    draw_popup('saved')
+
+                if touche == 'Return':
+                    if not open_mode:
+                        save.save_map(map, current_page)
+                    else:
+                        new = save.open_map(map, current_page)
+                        map = Map(new)
+                    ui.change_state('saved')
+                    fltk.efface_tout()
+                    draw()
+
 
         elif ev[0] == 'Redimension':
             fltk.efface_tout()

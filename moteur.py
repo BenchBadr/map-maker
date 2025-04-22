@@ -294,13 +294,17 @@ def mainloop():
                 fltk.efface_tout()
                 draw()
 
-            if ui.get_state('popup') and touche == 'Down' or touche == 'Up':
+            if (ui.get_state('popup') or ui.get_state('deco')) and touche == 'Down' or touche == 'Up':
                 if touche == 'Down':
                     map.current_page += 1
                 else:
                     map.current_page -= 1
-                erase_popup('popup')
-                draw_popup('popup')
+                if ui.get_state('popup'):
+                    erase_popup('popup')
+                    draw_popup('popup')
+                else:
+                    erase_popup('deco')
+                    draw_popup('deco')
 
             if ui.get_state('saved'):
                 if touche in ['Left', 'Right']:

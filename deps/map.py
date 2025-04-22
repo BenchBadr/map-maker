@@ -1,10 +1,12 @@
 import PIL.Image
 try:
     from cree_dico import cree_dico
+    from modules.plage_deco import analyse_tuile
     import modules.fltk as fltk,modules.fltk_addons as addons
 except ImportError:
     from deps.cree_dico import cree_dico, cree_deco
     import deps.modules.fltk as fltk,deps.modules.fltk_addons as addons
+    from deps.modules.plage_deco import analyse_tuile
 addons.init(fltk)
 from math import floor, ceil
 
@@ -20,7 +22,6 @@ class Map:
             self.grille = [[None for _ in range(2)] for _ in range(2)]
         else:
             self.grille = grille
-        self.deco = {}
 
         self.dim = len(self.grille), len(self.grille[0])
         import os
@@ -36,6 +37,10 @@ class Map:
 
         # memo deco plage
         self.plage_memo = {}
+        # stockage des decos
+        self.deco = {}
+        # obtenir deco associée a tuiles (deletion...)
+        self.tiles_to_deco = {}
 
     def dump_img(self, path) -> PIL.Image:
         """
@@ -469,24 +474,27 @@ class Map:
             (x,y,x2,y2): Les coordonnées de la fenêtre de dessin (du rectangle de la main area)
             args_func: dictionnaire passant les arguments de la fonction, ici, utilisé pour obtenir le tile selectionné
         """
-        tile = args_func['tile']
         coords = args_func['coords']
         zoom = args_func['zoom']
-
-        nom_tuile = self.grille[tile[1]][tile[0]]
 
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
         dim = self.dim
         size = min(w, h)
         unit = size//max(dim) * zoom
 
-        if 'S' not in nom_tuile and 'P' not in nom_tuile:
+        pad = (w - (unit * dim[0])) / 2
+        coords = (coords[0] - pad, coords[1] - pad)
+        coords = (coords[0]/unit, coords[1]/unit)
+        
+        deco_possibles = self.deco_possible(coords[0], coords[1])
+
+        if len(deco_possibles) == 0:
             c2 = x, y + unit, x2, y2 // 2
             sub_page = x2 - x, y2 - y + unit
             a,b,r,rat = c2[0]+sub_page[0]//2, c2[1]+sub_page[1]//2, min(sub_page)//4, .6
             # Texte
             t1 = 'Pas de décoration'
-            t2 = 'Aucun décor n\'est disponible pour cette tuile.'
+            t2 = 'Aucun décor n\'est disponible pour cette position.'
 
             taille1 = int((5*r)//len(t1))
             taille2 = int((5*r)//len(t2))
@@ -495,16 +503,48 @@ class Map:
             fltk.texte(a - taille2*len(t2)*.3, c2[1] // 2 + taille1 * 2, t2, couleur='#888', tag=key, taille=taille2)
             return
 
-        pad = (w - (unit * dim[0])) / 2
-        coords = (coords[0] - pad, coords[1] - pad)
-        coords = (coords[0]/unit, coords[1]/unit)
-        
-        biome = {'SSSS':'mer', 'PPPP':'terre'}[nom_tuile]
-        deco_possibles = self.deco_possible(coords[0], coords[1])
     
-        print(nom_tuile, coords)
+        # Dessin des possibles
+        s = len(deco_possibles)
+        win_w, win_h = abs(x - x2), abs(y - y2)
+        win_unit = min(win_w, win_h) // 10
+        win_p = win_unit // 2 
 
-    def deco_possible(self, x:float, y:float) -> list:
+        n_x = floor((win_w + win_p) // (win_unit + win_p))
+        n_y = floor((win_h + win_p) // (win_unit + win_p))
+
+        pages = ceil(s / (n_x * n_y))
+        self.current_page = min(max(0,self.current_page), pages - 1)
+        current_page = self.current_page
+
+
+        # draw the scrollbar
+        h_scrollbar = abs(y - y2) + win_p
+        thumb_height = h_scrollbar * (1/pages)
+        if pages > 1:
+            ## Scrollbar background
+            fltk.rectangle(x2 + win_p // 2, y + win_p, x2+win_p*1.25, y + h_scrollbar, tag=key, remplissage='#444')
+            ## Scrollbar thumb
+            fltk.rectangle(x2 + win_p // 2, 
+                        y + win_p + (current_page) * thumb_height, 
+                        x2+win_p*1.25, 
+                        y + thumb_height * (current_page + 1), 
+                        tag=key, 
+                        remplissage='grey')
+            
+        # changement de variables pour afficher une page différente
+        count = (current_page * (n_x * n_y))
+        for i in range(n_y):
+            for j in range(min(n_x, s - count)):
+                c = (x+j*(win_unit+win_p), y+(i)*(win_unit+win_p)+win_p*2)
+                deco = deco_possibles[count]
+                self.tiles_to_deco[deco] = coords
+                fltk.rectangle(c[0], c[1], c[0] + unit, c[1] + unit, remplissage='#222', epaisseur=0)
+                fltk.image(c[0], c[1], self.deco_tiles['terre'][deco][0], 
+                        hauteur=int(win_unit), largeur=int(win_unit), tag='tile_'+deco)
+                count += 1
+
+    def deco_possible(self,  x:float, y:float) -> list:
         """
         Renvoie les décorations possibles pour une tuile donnée.
 
@@ -514,21 +554,96 @@ class Map:
         Returns:
             list: Liste des décorations possibles.
         """
-        
-        def plage_possible(self, tuile:str) -> list:
+
+        def test_rectangle(tuile:str, start:tuple, end:tuple) -> list:
             """
-            Renvoie les plages possibles de placement des coordonnées sur une tuile
+            Test si un rectangle peut être placée sur la tuile.
+            Ce rectangle est soit un placement complet d'un decor
+            Soit partiel si la tuile est à cheval.
 
             Args:
-                i: Coordonnée i de la tuile.
-                j: Coordonnée j de la tuile.
+                tuile: str, nom de la tuile
+                start: tuple, coord de debut du rectangle
+                end: tuple, coord de fin du rectangle
             Returns:
-                list: Liste des plages possibles.
+                bool: placement valide
             """
-            if tuile in self.plage_memo:
-                return self.plage_memo[tuile]
-            plage = self.deco_tiles['plage']
+            if tuile is None:
+                return False
+            
+            if tuile not in self.plage_memo:
+                self.plage_memo[tuile] = analyse_tuile(tuile)
+
+            bboxes = self.plage_memo[tuile]
+
+            x1, y1 = start
+            x2, y2 = end
+
+            for bbox in bboxes:
+                bx_min, by_min, bx_max, by_max = bbox
+                if (x1 <= bx_max and x2 >= bx_min and
+                    y1 <= by_max and y2 >= by_min):
+                    return False
+            return True
+        
+        # Les tuiles sont toutes plus petites, 
+        # donc une deco sera au plus sur deux tuiles si décalée
+        source = (floor(x), floor(y))
+        tuile_source = self.grille[source[1]][source[0]]
+
+        if 'P' in tuile_source:
+            eligible = self.deco_tiles['terre']
+            biome = 'terre'
+        elif tuile_source == 'SSSS':
+            eligible = self.deco_tiles['mer']
+            biome = 'mer'
+        else:
             return []
+
+        deco_ok = []
+
+        for candidat in eligible:
+            img = PIL.Image.open(eligible[candidat][0])
+            dw, dh = img.size
+            img.close()
+
+            dw, dh = dw / 100, dh / 100
+
+            arrivee = floor(x + dw), floor(y + dh)
+
+            # Si arrivee n'existe pas
+            if not(0 <= arrivee[0] < self.dim[1] and 0 <= arrivee[1] < self.dim[0]):
+                continue
+            
+            arrivee_tuile = self.grille[arrivee[1]][arrivee[0]]
+
+            # Si la tuile n'est pas à cheval
+            if arrivee == source:
+                if tuile_source in ['PPPP', 'SSSS']:
+                    # pas de bbox
+                    deco_ok.append(candidat)
+                else:
+                    # On teste si le placement est valide dans la tuile
+                    if test_rectangle(tuile_source, (x,y), (x + dw, y + dh)):
+                        deco_ok.append(candidat)
+            else:
+                # On teste si valide dans source
+                if not(tuile_source in ['PPPP', 'SSSS'] or \
+                      test_rectangle(tuile_source, (x,y), (1, 1))):
+                    continue
+                # On teste si valide dans arrivee
+                delta_dw, delta_dh = dw - abs(x - 1), dh - abs(y - 1)
+                if test_rectangle(arrivee_tuile, (0,0), (delta_dw, delta_dh)):
+                    deco_ok.append(candidat)
+        
+        return biome, deco_ok
+
+
+
+
+        
+
+
 
     
 

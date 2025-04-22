@@ -24,12 +24,12 @@ def cree_deco(path:str) -> dict:
     Returns:
         dict: {mer:{serpent:'mer/serpent.png' ...}}
     """
-    deco_type = os.listdir(path)
+    deco_type = [folder for folder in os.listdir(path) if not folder[0] == '.']
     res = {biome: {} for biome in deco_type}
     for biome in deco_type:
         deco = os.listdir(path + '/' + biome)
         res[biome] = {
-            deco[:-4]:[path + '/' + biome + '/' + deco]
+            deco[:-4]:[path + '/' + biome + '/' + deco, ]
             for deco in deco
         }
     return res

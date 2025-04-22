@@ -600,13 +600,12 @@ class Map:
         # Les tuiles sont toutes plus petites, 
         # donc une deco sera au plus sur deux tuiles si décalée
         source = (floor(x), floor(y))
-        tuile_source = self.grille[source[1]][source[0]]
+        tuile_source = self.grille[source[0]][source[1]]
 
         if 'P' in tuile_source:
             eligible = self.deco_tiles['terre']
             biome = 'terre'
         elif tuile_source == 'SSSS':
-            return None, []
             eligible = self.deco_tiles['mer']
             biome = 'mer'
         else:

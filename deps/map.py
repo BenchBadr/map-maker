@@ -105,6 +105,7 @@ class Map:
             zoom: Le facteur de zoom.
             deplacement_map: Le déplacement de la carte (utilisé pour le scrolling)
         """
+
         # TODO : Avoid unnecessary renders (case of overflow)
 
         unit = floor(unit * zoom)
@@ -475,23 +476,25 @@ class Map:
             args_func: dictionnaire passant les arguments de la fonction, ici, utilisé pour obtenir le tile selectionné
         """
         coords = args_func['coords']
-        zoom = args_func['zoom']
+        zoom, dep_map = args_func['state']
 
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
         dim = self.dim
         size = min(w, h)
-        unit = size//max(dim) * zoom
+        unit = floor(size//max(dim) * zoom)
 
-        pad = (w - (unit * dim[0])) / 2
-        coords = (coords[0] - pad, coords[1] - pad)
-        coords = (coords[0]/unit, coords[1]/unit)
+        grid_width = dim[0] * unit
+        grid_height = dim[1] * unit
 
-        print(coords, unit * dim[0], '/', w)
-        
+        base_x = (w - grid_width) // 2
+        base_y = (h - grid_height) // 2
+
+        coords = (coords[0] - base_x, coords[1] - base_y)
+        coords = (coords[0]/unit - dep_map[0], coords[1]/unit - dep_map[1])
+
         biome, deco_possibles = self.deco_possible(coords[0], coords[1])
 
         if len(deco_possibles) == 0:
-            unit_ui = size // 5
             c2 = x, y
             sub_page = x2 - x, y2 - y
             a, b, r = c2[0] + sub_page[0] // 2, c2[1] + sub_page[1] // 2, min(sub_page)//4

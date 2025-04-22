@@ -40,6 +40,8 @@ def mainloop():
     # /!\ Gourmand en ressources, risques de ralentissements.
     map.riviere = True
 
+    state_on_click = 1 # pour eviter erreurs de calculs pour deco
+
     
     fltk.cree_fenetre(w, h, redimension=True)
 
@@ -66,7 +68,7 @@ def mainloop():
             ui.create_popup(['deco', False], 
                             "Decoration Picker", 
                             map.deco_selector,
-                            args_func={'tile':selected_tile, 'coords':memo_coords, 'zoom':zoom},
+                            args_func={'tile':selected_tile, 'coords':memo_coords, 'state':state_on_click},
                             max_width=500, max_height=500)
     def draw():
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
@@ -206,6 +208,7 @@ def mainloop():
                             if 0 <= transl[0] < map.dim[0] and 0 <= transl[1] < map.dim[1] \
                                 and map.grille[transl[1]][transl[0]] != None:
                                 memo_coords = (x,y)
+                                state_on_click = zoom, map.deplacement_map
                                 ui.change_state('deco')
                             else:
                                 ui.change_state('popup')

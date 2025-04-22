@@ -631,7 +631,7 @@ class Map:
             if not(0 <= arrivee[0] < self.dim[1] and 0 <= arrivee[1] < self.dim[0]):
                 continue
             
-            arrivee_tuile = self.grille[arrivee[1]][arrivee[0]]
+            arrivee_tuile = self.grille[arrivee[0]][arrivee[1]]
 
             # Si la tuile n'est pas à cheval
             if arrivee == source:
@@ -647,7 +647,14 @@ class Map:
                 if not(tuile_source in ['PPPP', 'SSSS'] or \
                       test_rectangle(tuile_source, (x,y), (1, 1))):
                     continue
-                # On teste si valide dans arrivee
+                # On teste biome valide
+                if biome == 'mer':
+                    if arrivee_tuile != 'SSSS':
+                        continue
+                elif biome == 'terre':
+                    if 'P' not in arrivee_tuile:
+                        continue
+                # On teste position valide
                 delta_dw, delta_dh = dw - abs(x - 1), dh - abs(y - 1)
                 if test_rectangle(arrivee_tuile, (0,0), (delta_dw, delta_dh)):
                     deco_ok.append(candidat)

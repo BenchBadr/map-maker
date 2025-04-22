@@ -92,7 +92,11 @@ class Map:
                 self.grille[k] = self.grille[k] + [None for _ in range(j - self.dim[1] + 1)]
         self.dim = (len(self.grille), len(self.grille[0]))
         self.grille[i][j] = tuile
-        # self.dump_img()
+        if tuile is None:
+            if (i, j) in self.tiles_to_deco:
+                for coords in self.tiles_to_deco[(i, j)]:
+                    del self.deco[coords]
+                del self.tiles_to_deco[(i, j)]
 
         return (j + self.deplacement_map[1], i + self.deplacement_map[0])
 
@@ -650,6 +654,22 @@ class Map:
             
             arrivee_tuile = self.grille[arrivee[0]][arrivee[1]]
 
+            # Vérifie chevauchement avec les décos existantes
+            overlap = False
+            for deco_coords, (deco_path, deco_size) in self.deco.items():
+                dx, dy = deco_coords
+                dw2, dh2 = deco_size
+                # Rectangle de la déco existante
+                rect1 = (x, y, x + dw, y + dh)
+                rect2 = (dx, dy, dx + dw2, dy + dh2)
+                # Test d'intersection
+                if not (rect1[2] <= rect2[0] or rect1[0] >= rect2[2] or
+                        rect1[3] <= rect2[1] or rect1[1] >= rect2[3]):
+                    overlap = True
+                    break
+            if overlap:
+                continue
+
             # Si la tuile n'est pas à cheval
             if arrivee == source:
                 if tuile_source in ['PPPP', 'SSSS']:
@@ -701,7 +721,9 @@ class Map:
 
         self.deco[coords] = [path, ims]
 
-        self.tiles_to_deco[source] = coords
+        if source not in self.tiles_to_deco:
+            self.tiles_to_deco[source] = []
+        self.tiles_to_deco[source].append(coords)
         arrive = floor(coords[0] + ims[0]), floor(coords[1] + ims[1])
         if arrive != source:
             self.tiles_to_deco[arrive] = coords

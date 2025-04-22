@@ -34,6 +34,9 @@ class Map:
         self.debug = False
         self.riviere = False
 
+        # memo deco plage
+        self.plage_memo = {}
+
     def dump_img(self, path) -> PIL.Image:
         """
         Renvoie une image représentant la carte.
@@ -130,7 +133,7 @@ class Map:
                             epaisseur=0)
                     
 
-    def tuiles_selector(self, key, x, y, x2, y2, args_func:dict) -> None:
+    def tuiles_selector(self, key:str, x:int, y:int, x2:int, y2:int, args_func:dict) -> None:
         """
         Dessine la grille de sélection des tuiles.
 
@@ -404,6 +407,10 @@ class Map:
 
 
     def riviere_parcours(self, i:int, j:int, nom_tuile:str, parcours:list) -> bool:
+        '''
+        Parcours en profondeur de la rivière
+        Vérifie par la même occasion si contient des boucles.
+        '''
         visited = set()
         s = [((i, j), None)]
         graph_riv = {}
@@ -473,7 +480,7 @@ class Map:
         size = min(w, h)
         unit = size//max(dim) * zoom
 
-        if nom_tuile not in ['SSSS', 'PPPP']:
+        if 'S' not in nom_tuile and 'P' not in nom_tuile:
             c2 = x, y + unit, x2, y2 // 2
             sub_page = x2 - x, y2 - y + unit
             a,b,r,rat = c2[0]+sub_page[0]//2, c2[1]+sub_page[1]//2, min(sub_page)//4, .6
@@ -493,12 +500,35 @@ class Map:
         coords = (coords[0]/unit, coords[1]/unit)
         
         biome = {'SSSS':'mer', 'PPPP':'terre'}[nom_tuile]
-        deco_possibles = list(self.deco_tiles[biome].keys())
-
-
-        print(deco_possibles)
+        deco_possibles = self.deco_possible(coords[0], coords[1])
     
         print(nom_tuile, coords)
+
+    def deco_possible(self, x:float, y:float) -> list:
+        """
+        Renvoie les décorations possibles pour une tuile donnée.
+
+        Args:
+            x: Coordonnée x de la tuile.
+            y: Coordonnée y de la tuile.
+        Returns:
+            list: Liste des décorations possibles.
+        """
+        
+        def plage_possible(self, tuile:str) -> list:
+            """
+            Renvoie les plages possibles de placement des coordonnées sur une tuile
+
+            Args:
+                i: Coordonnée i de la tuile.
+                j: Coordonnée j de la tuile.
+            Returns:
+                list: Liste des plages possibles.
+            """
+            if tuile in self.plage_memo:
+                return self.plage_memo[tuile]
+            plage = self.deco_tiles['plage']
+            return []
 
     
 

@@ -485,12 +485,14 @@ class Map:
         pad = (w - (unit * dim[0])) / 2
         coords = (coords[0] - pad, coords[1] - pad)
         coords = (coords[0]/unit, coords[1]/unit)
+
+        print(coords, unit * dim[0], '/', w)
         
         biome, deco_possibles = self.deco_possible(coords[0], coords[1])
 
         if len(deco_possibles) == 0:
-            c2 = x, y + unit, x2, y2 // 2
-            sub_page = x2 - x, y2 - y + unit
+            c2 = x, y2 // 2, x2, y2 // 2
+            sub_page = x2 - x, y2 // 2
             a,b,r,rat = c2[0]+sub_page[0]//2, c2[1]+sub_page[1]//2, min(sub_page)//4, .6
             # Texte
             t1 = 'Pas de décoration'
@@ -600,10 +602,11 @@ class Map:
             eligible = self.deco_tiles['terre']
             biome = 'terre'
         elif tuile_source == 'SSSS':
+            return None, []
             eligible = self.deco_tiles['mer']
             biome = 'mer'
         else:
-            return []
+            return None, []
 
         deco_ok = []
 

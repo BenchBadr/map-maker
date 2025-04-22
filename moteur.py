@@ -154,7 +154,7 @@ def mainloop():
                 if last_x != None:
                     ui.set_coords(dragged_object, x - last_x, y - last_y)
                     erase_popup(dragged_object)
-                    draw_popup('popup')
+                    draw_popup(dragged_object)
             continue
         elif ev[0] =="Quitte":
             fltk.ferme_fenetre()

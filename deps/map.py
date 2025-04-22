@@ -11,7 +11,7 @@ addons.init(fltk)
 from math import floor, ceil
 
 class Map:
-    def __init__(self, grille=None) -> None:
+    def __init__(self, grille=None, deco={}, tiles_to_deco={}) -> None:
         """
         Initialise la carte avec une grille donnée.
         Args:
@@ -38,9 +38,9 @@ class Map:
         # memo deco plage décorable
         self.plage_memo = {}
         # stockage des decos de la map
-        self.deco = {}
+        self.deco = deco
         # obtenir deco associée a tuiles (deletion...)
-        self.tiles_to_deco = {}
+        self.tiles_to_deco = tiles_to_deco
         # memo des tuiles
         self.deco_memo = None
 

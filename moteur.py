@@ -323,8 +323,10 @@ def mainloop():
                     if not open_mode:
                         save.save_map(map, current_page)
                     else:
-                        new = save.open_map(map, current_page)
-                        map = Map(new)
+                        res = save.open_map(current_page)
+                        if res:
+                            grille, deco, tiles_to_deco = res
+                            map = Map(grille, deco, tiles_to_deco)
                     ui.change_state('saved')
                     fltk.efface_tout()
                     draw()

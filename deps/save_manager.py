@@ -20,7 +20,10 @@ def file_selector(key:str, x:int, y:int, x2:int, y2:int, args_func:dict) -> None
     n = len(fichiers)
 
     open_mode = args_func['open_mode']
-    current_page = args_func['current_page'] % (n + 1 if not open_mode else n)
+    if n == 0:
+        current_page = 0
+    else:
+        current_page = args_func['current_page'] % (n + 1 if not open_mode else n)
 
     unit = min(10, (x2 -x) // (4*n + 1))
     length = unit * (4*n)
@@ -109,20 +112,28 @@ def save_map(map, current_page):
     map.dump_img('saves/images/' + name + '.png')
     save_path = os.path.join('saves', 'maps', f"{name}.map")
     with open(save_path, 'w', encoding='utf-8') as f:
-        f.write(str(map.grille))
+        f.write(str(map.grille)+'\n')
+        f.write(str(map.deco)+'\n') 
+        f.write(str(map.tiles_to_deco)+'\n')
         f.close()
 
-def open_map(map, current_page):
+def open_map(current_page):
     """
     Ouvre un fichier de carte et charge la carte.
     """
-    current_page = current_page % len(os.listdir('saves/maps'))
+    n = len(os.listdir('saves/maps'))
+    if n == 0:
+        return
+    current_page = current_page % n
     name = os.listdir('saves/maps')[current_page ][:-4]
     save_path = os.path.join('saves', 'maps', f"{name}.map")
     with open(save_path, 'r', encoding='utf-8') as f:
-        grille = eval(f.read())
+        grille, deco, tiles_to_deco = f.readlines()
+        grille = eval(grille)
+        deco = eval(deco)
+        tiles_to_deco = eval(tiles_to_deco)
         f.close()
-    return grille
+    return grille, deco, tiles_to_deco
     
 def clear_saves():
     """

@@ -111,6 +111,10 @@ def mainloop():
             for tile in tile_memo:
                 fltk.efface('tile_'+tile)
             tile_memo = set()
+        if key == 'deco':
+            for deco in map.deco_memo[1]:
+                fltk.efface('deco_'+deco)
+            map.deco_memo = None
 
 
     while not end:
@@ -193,6 +197,8 @@ def mainloop():
                             last_x, last_y = x, y
                 if keys[0] == 'close':
                     ui.change_state(keys[1])
+                    if keys[1] == 'deco':
+                        map.deco_memo = None
                     selected_tile = None
                 if keys[0] == 'expand':
                     ui.set_fullscreen(keys[1])

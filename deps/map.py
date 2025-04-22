@@ -35,12 +35,14 @@ class Map:
         self.debug = False
         self.riviere = False
 
-        # memo deco plage
+        # memo deco plage décorable
         self.plage_memo = {}
-        # stockage des decos
+        # stockage des decos de la map
         self.deco = {}
         # obtenir deco associée a tuiles (deletion...)
         self.tiles_to_deco = {}
+        # memo des tuiles
+        self.deco_memo = None
 
     def dump_img(self, path) -> PIL.Image:
         """
@@ -492,7 +494,11 @@ class Map:
         coords = (coords[0] - base_x, coords[1] - base_y)
         coords = (coords[0]/unit - dep_map[0], coords[1]/unit - dep_map[1])
 
-        biome, deco_possibles = self.deco_possible(coords[0], coords[1])
+        if self.deco_memo is None:
+            self.deco_memo = self.deco_possible(coords[0], coords[1])
+        
+        # Éviter de reexecuter à chaque redessin
+        biome, deco_possibles = self.deco_memo
 
         if len(deco_possibles) == 0:
             c2 = x, y
@@ -549,10 +555,10 @@ class Map:
                 path, size_deco = self.deco_tiles[biome][deco]
                 pad_img = win_unit * .5, win_unit * .5 #* (size_deco[1])#win_unit*(.5*(1 - size_deco[0] *.5)), win_unit*(.5*(1 - size_deco[1] * .5))
 
-                fltk.rectangle(c[0], c[1], c[0] + win_unit, c[1] + win_unit, remplissage='#777', epaisseur=0, tag=key)
+                fltk.rectangle(c[0], c[1], c[0] + win_unit, c[1] + win_unit, remplissage='#777', epaisseur=0, tag='deco_'+deco)
                 fltk.image(c[0]+pad_img[0], c[1]+pad_img[1], path, 
                         hauteur=ceil(size_deco[1] * win_unit), largeur=ceil(size_deco[0] * win_unit), 
-                        tag=key)
+                        tag='deco_'+deco)
                 count += 1
 
     def deco_possible(self,  x:float, y:float) -> list:
@@ -660,6 +666,19 @@ class Map:
                     deco_ok.append(candidat)
         
         return biome, deco_ok
+    
+    def add_decoration(self, x:float, y:float) -> None:
+        """
+        Ajoute une décoration à la carte.
+
+        Args:
+            x: Coordonnée x de la tuile.
+            y: Coordonnée y de la tuile.
+        """
+        coords = (floor(x), floor(y))
+        deco = self.deco_tiles[self.deco_tiles[coords[0]][coords[1]]]
+        self.deco[coords].append(deco)
+
 
 
 

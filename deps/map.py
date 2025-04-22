@@ -63,6 +63,11 @@ class Map:
                     white_square = PIL.Image.new('RGB', (100, 100), color=(128, 128, 128))
                     image.paste(white_square, (i*100, j*100))
 
+        # Add decors
+        for coords, (path_dec, ims) in self.deco.items():
+            coords = (ceil(coords[0] * 100), ceil(coords[1] * 100))
+            deco_image = PIL.Image.open(path_dec)
+            image.paste(deco_image, coords)
         image.save(path)
         return image
     

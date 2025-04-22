@@ -141,10 +141,12 @@ class Map:
                             epaisseur=0)
                     
         # Display decorations
+        init = c0 - unit * .5, c1 - unit * .5
         for coords, (path, ims) in self.deco.items():
-            fltk.image(c0+coords[0]*unit, c1+coords[1]*unit, path,
-                       hauteur = floor(ims[0] * unit),
-                       largeur = floor(ims[1] * unit))
+            coords = ((coords[0] + ims[0]*.5) * unit, (coords[1] + ims[1]*.5) * unit)
+            fltk.image(init[0] + coords[0], init[1] + coords[1], path,
+                       hauteur = floor(ims[1] * unit),
+                       largeur = floor(ims[0] * unit))
                     
 
     def tuiles_selector(self, key:str, x:int, y:int, x2:int, y2:int, args_func:dict) -> None:

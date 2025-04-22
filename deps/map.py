@@ -140,6 +140,12 @@ class Map:
                             remplissage='#555' if self.debug else 'grey', # Change this color to make Map boundaries visible
                             epaisseur=0)
                     
+        # Display decorations
+        for coords, (path, ims) in self.deco.items():
+            fltk.image(c0+coords[0]*unit, c1+coords[1]*unit, path,
+                       hauteur = floor(ims[0] * unit),
+                       largeur = floor(ims[1] * unit))
+                    
 
     def tuiles_selector(self, key:str, x:int, y:int, x2:int, y2:int, args_func:dict) -> None:
         """
@@ -495,10 +501,10 @@ class Map:
         coords = (coords[0]/unit - dep_map[0], coords[1]/unit - dep_map[1])
 
         if self.deco_memo is None:
-            self.deco_memo = self.deco_possible(coords[0], coords[1])
+            self.deco_memo = self.deco_possible(coords[0], coords[1]), coords
         
         # Éviter de reexecuter à chaque redessin
-        biome, deco_possibles = self.deco_memo
+        (biome, deco_possibles), _c = self.deco_memo
 
         if len(deco_possibles) == 0:
             c2 = x, y
@@ -552,13 +558,16 @@ class Map:
                 c = (x+j*(win_unit+win_p), y+(i)*(win_unit+win_p)+win_p/2.5)
 
                 deco = deco_possibles[count]
+
+                tag = 'decor_'+deco+'|'+f"{coords[0]}*{coords[1]}"
+
                 path, size_deco = self.deco_tiles[biome][deco]
                 pad_img = win_unit * .5, win_unit * .5 #* (size_deco[1])#win_unit*(.5*(1 - size_deco[0] *.5)), win_unit*(.5*(1 - size_deco[1] * .5))
 
-                fltk.rectangle(c[0], c[1], c[0] + win_unit, c[1] + win_unit, remplissage='#777', epaisseur=0, tag='deco_'+deco)
+                fltk.rectangle(c[0], c[1], c[0] + win_unit, c[1] + win_unit, remplissage='#777', epaisseur=0, tag=tag)
                 fltk.image(c[0]+pad_img[0], c[1]+pad_img[1], path, 
                         hauteur=ceil(size_deco[1] * win_unit), largeur=ceil(size_deco[0] * win_unit), 
-                        tag='deco_'+deco)
+                        tag=tag)
                 count += 1
 
     def deco_possible(self,  x:float, y:float) -> list:
@@ -667,17 +676,37 @@ class Map:
         
         return biome, deco_ok
     
-    def add_decoration(self, x:float, y:float) -> None:
+    def add_decoration(self, deco:str) -> None:
         """
         Ajoute une décoration à la carte.
+        Enregistre dans `self.deco`
+        et `self.tiles_to_deco` pour supprimer les decorations lors de la suppression des tiles associés.
 
         Args:
-            x: Coordonnée x de la tuile.
-            y: Coordonnée y de la tuile.
+            deco: Nom de la décoration à ajouter. (contient aussi les coords)
         """
-        coords = (floor(x), floor(y))
-        deco = self.deco_tiles[self.deco_tiles[coords[0]][coords[1]]]
-        self.deco[coords].append(deco)
+        deco, coords = deco.split('|')
+        coords = tuple(map(float, coords.split('*')))
+
+        source = (floor(coords[0]), floor(coords[1]))
+        tile_source = self.grille[source[0]][source[1]]
+        if 'P' in tile_source:
+            biome = 'terre'
+        else:
+            biome = 'mer'
+
+        path, ims = self.deco_tiles[biome][deco]
+
+        self.deco[coords] = [path, ims]
+
+        self.tiles_to_deco[source] = coords
+        arrive = floor(coords[0] + ims[0]), floor(coords[1] + ims[1])
+        if arrive != source:
+            self.tiles_to_deco[arrive] = coords
+
+
+
+
 
 
 

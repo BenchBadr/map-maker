@@ -112,8 +112,9 @@ def mainloop():
                 fltk.efface('tile_'+tile)
             tile_memo = set()
         if key == 'deco':
-            for deco in map.deco_memo[1]:
-                fltk.efface('deco_'+deco)
+            for deco in map.deco_memo[0][1]:
+                c = map.deco_memo[1]
+                fltk.efface('decor_'+deco+'|'+f"{c[0]}*{c[1]}")
             map.deco_memo = None
 
 
@@ -205,6 +206,8 @@ def mainloop():
                 if keys[0] == 'tile':
                     selected_tile = map.edit_tile(selected_tile[1], selected_tile[0], keys[1])
                     # ui.change_state('popup')
+                if keys[0] == 'decor':
+                    map.add_decoration(''.join(keys[1:]))
                 if len(clicked) == 1:
                     if keys[0] == 'grid' and not dragging:
                         if ui.none_active():

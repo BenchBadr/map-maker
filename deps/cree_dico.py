@@ -29,7 +29,7 @@ def cree_deco(path:str) -> dict:
     for biome in deco_type:
         deco = os.listdir(path + '/' + biome)
         res[biome] = {
-            deco[:-4]:[path + '/' + biome + '/' + deco, ]
+            deco[:-4]:[path + '/' + biome + '/' + deco, None]
             for deco in deco
         }
     return res

@@ -202,7 +202,9 @@ def mainloop():
                         if ui.none_active():
                             tuile = [int(n) for n in tag.split('_')[1].split('*')]
                             selected_tile = tuile
-                            if 0 <= selected_tile[1] < map.dim[0] and 0 <= selected_tile[0] < map.dim[1] and  map.grille[selected_tile[1]][selected_tile[0]] is not None:
+                            transl = (selected_tile[0] - map.deplacement_map[1], selected_tile[1] - map.deplacement_map[0])
+                            if 0 <= transl[0] < map.dim[0] and 0 <= transl[1] < map.dim[1] \
+                                and map.grille[transl[1]][transl[0]] != None:
                                 memo_coords = (x,y)
                                 ui.change_state('deco')
                             else:
@@ -253,17 +255,6 @@ def mainloop():
                 map.riviere = not map.riviere
                 fltk.efface_tout()
                 draw()
-
-
-            # Save map as picture `./map.png`
-            elif touche.lower() == 's' or touche.lower() == 'o':
-                open_mode = False
-                if touche.lower() == 'o':
-                    open_mode = True
-        
-                if not ui.get_state('saved'):
-                    ui.change_state('saved')
-                    draw_popup('saved')
 
             # Déplacements de la carte
             elif touche in ['Left', 'Right', 'Up', 'Down']:
@@ -324,6 +315,17 @@ def mainloop():
                     ui.change_state('saved')
                     fltk.efface_tout()
                     draw()
+
+            # Gestionnaire de sauvegardes
+            if ui.none_active():
+                if touche.lower() == 's' or touche.lower() == 'o':
+                    open_mode = False
+                    if touche.lower() == 'o':
+                        open_mode = True
+            
+                    if not ui.get_state('saved'):
+                        ui.change_state('saved')
+                        draw_popup('saved')
 
 
         elif ev[0] == 'Redimension':

@@ -486,7 +486,7 @@ class Map:
         coords = (coords[0] - pad, coords[1] - pad)
         coords = (coords[0]/unit, coords[1]/unit)
         
-        deco_possibles = self.deco_possible(coords[0], coords[1])
+        biome, deco_possibles = self.deco_possible(coords[0], coords[1])
 
         if len(deco_possibles) == 0:
             c2 = x, y + unit, x2, y2 // 2
@@ -507,7 +507,8 @@ class Map:
         # Dessin des possibles
         s = len(deco_possibles)
         win_w, win_h = abs(x - x2), abs(y - y2)
-        win_unit = min(win_w, win_h) // 10
+        scale = 3
+        win_unit = min(win_w, win_h) // scale
         win_p = win_unit // 2 
 
         n_x = floor((win_w + win_p) // (win_unit + win_p))
@@ -519,16 +520,16 @@ class Map:
 
 
         # draw the scrollbar
-        h_scrollbar = abs(y - y2) + win_p
+        h_scrollbar = abs(y - y2)
         thumb_height = h_scrollbar * (1/pages)
         if pages > 1:
             ## Scrollbar background
-            fltk.rectangle(x2 + win_p // 2, y + win_p, x2+win_p*1.25, y + h_scrollbar, tag=key, remplissage='#444')
+            fltk.rectangle(x2, y + win_p // 5, x2 + win_p // 5, y + h_scrollbar + win_p // 5, tag=key, remplissage='#444')
             ## Scrollbar thumb
-            fltk.rectangle(x2 + win_p // 2, 
-                        y + win_p + (current_page) * thumb_height, 
-                        x2+win_p*1.25, 
-                        y + thumb_height * (current_page + 1), 
+            fltk.rectangle(x2, 
+                        y + (current_page) * thumb_height + win_p // 5, 
+                        x2 + win_p // 5, 
+                        y + thumb_height * (current_page + 1) + win_p // 5, 
                         tag=key, 
                         remplissage='grey')
             
@@ -536,12 +537,16 @@ class Map:
         count = (current_page * (n_x * n_y))
         for i in range(n_y):
             for j in range(min(n_x, s - count)):
-                c = (x+j*(win_unit+win_p), y+(i)*(win_unit+win_p)+win_p*2)
+                c = (x+j*(win_unit+win_p), y+(i)*(win_unit+win_p)+win_p/2.5)
+
                 deco = deco_possibles[count]
-                self.tiles_to_deco[deco] = coords
-                fltk.rectangle(c[0], c[1], c[0] + unit, c[1] + unit, remplissage='#222', epaisseur=0)
-                fltk.image(c[0], c[1], self.deco_tiles['terre'][deco][0], 
-                        hauteur=int(win_unit), largeur=int(win_unit), tag='tile_'+deco)
+                path, size_deco = self.deco_tiles[biome][deco]
+                pad_img = win_unit * .5, win_unit * .5 #* (size_deco[1])#win_unit*(.5*(1 - size_deco[0] *.5)), win_unit*(.5*(1 - size_deco[1] * .5))
+
+                fltk.rectangle(c[0], c[1], c[0] + win_unit, c[1] + win_unit, remplissage='#777', epaisseur=0, tag=key)
+                fltk.image(c[0]+pad_img[0], c[1]+pad_img[1], path, 
+                        hauteur=ceil(size_deco[1] * win_unit), largeur=ceil(size_deco[0] * win_unit), 
+                        tag=key)
                 count += 1
 
     def deco_possible(self,  x:float, y:float) -> list:
@@ -603,11 +608,16 @@ class Map:
         deco_ok = []
 
         for candidat in eligible:
-            img = PIL.Image.open(eligible[candidat][0])
-            dw, dh = img.size
-            img.close()
 
-            dw, dh = dw / 100, dh / 100
+            # memo dimensions decor
+            if self.deco_tiles[biome][candidat][1] is None:
+                img = PIL.Image.open(eligible[candidat][0])
+                dw, dh = img.size
+                img.close()
+                dw, dh = dw / 100, dh / 100
+                self.deco_tiles[biome][candidat][1] = (dw, dh)
+
+            dw, dh = self.deco_tiles[biome][candidat][1]
 
             arrivee = floor(x + dw), floor(y + dh)
 

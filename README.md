@@ -95,6 +95,8 @@ Un événement `LacheGauche` a été ceéé, utilisant l'événement `<ButtonRel
     - Save file through manager
 - `O`
     - Open file through manager
+- `Backspace`
+    - When in save manager, delete files
 
 # Ouverture
 

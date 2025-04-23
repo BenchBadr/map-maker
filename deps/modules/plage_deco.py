@@ -83,6 +83,6 @@ def analyse_tuile(tuile, debug=False):
 
 
 if __name__ == '__main__':
-    bbox, img = analyse_tuile('SSDH', debug=True)
+    bbox, img = analyse_tuile('PPFP', debug=True)
     print(bbox)
     img.show()

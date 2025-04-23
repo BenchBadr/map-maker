@@ -80,23 +80,52 @@ class Map:
             tuile: Le nom de la nouvelle tuile.
         """
 
-        # Ajuster les coordonnés
+        # Ajuster les coordonnés en fonction du déplacement
         i, j = i - self.deplacement_map[0], j - self.deplacement_map[1]
+
         # Redimension dynamique et invisible, pour "estomper" la finitude temporaire de la carte
+
+        tsl = [0,0] # translation si redimensionnement
+
         if i < 0:
             self.grille = [[None for _ in range(self.dim[1])] for _ in range(-i)] + self.grille
+            tsl = (-i, 0)
             i = 0
         elif i >= self.dim[0]:
             self.grille += [[None for _ in range(self.dim[1])] for _ in range(i - self.dim[0] + 1)]
         if j < 0:
             for k in range(len(self.grille)):
                 self.grille[k] = [None for _ in range(-j)] + self.grille[k]
+            tsl = (tsl[0], -j)
             j = 0
         elif j >= self.dim[1]:
             for k in range(len(self.grille)):
                 self.grille[k] = self.grille[k] + [None for _ in range(j - self.dim[1] + 1)]
+
         self.dim = (len(self.grille), len(self.grille[0]))
         self.grille[i][j] = tuile
+
+        # Si on doit translater les coords,
+        # On ajuste les decos
+
+        if tsl != (0,0):
+
+            new_deco = {}
+            
+            # On ajuste les tiles_to_deco
+            for tile, coords_list in self.tiles_to_deco.items():
+                new_co_list = []
+                for coords in coords_list:
+                    new_coords = (coords[0] + tsl[0], coords[1] + tsl[1])
+                    new_co_list.append(new_coords)
+                    new_deco[new_coords] = self.deco[coords]
+                self.tiles_to_deco[tile] = new_co_list
+
+            # On ajuste les decos
+            self.deco = new_deco
+
+        # Si suppression de tuile
+        # Supprimer les décos associée
         if tuile is None:
             if (i, j) in self.tiles_to_deco:
                 for coords in self.tiles_to_deco[(i, j)]:
@@ -687,7 +716,7 @@ class Map:
             else:
                 # On teste si valide dans source
                 if not(tuile_source in ['PPPP', 'SSSS'] or \
-                      test_rectangle(tuile_source, (x,y), (1, 1))):
+                      test_rectangle(tuile_source, (x,y), (source[0] + 1, source[1] + 1))):
                     continue
                 # On teste biome valide
                 if biome == 'mer':
@@ -731,7 +760,7 @@ class Map:
         self.tiles_to_deco[source].append(coords)
         arrive = floor(coords[0] + ims[0]), floor(coords[1] + ims[1])
         if arrive != source:
-            self.tiles_to_deco[arrive] = coords
+            self.tiles_to_deco[arrive].append(coords)
 
 
 

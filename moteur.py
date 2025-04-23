@@ -2,6 +2,7 @@ import deps.modules.fltk as fltk,deps.modules.fltk_addons as addons
 from deps.map import Map
 import deps.ui as ui
 import deps.save_manager as save
+from deps.solver import Solver
 addons.init(fltk)
 from math import floor
 
@@ -234,6 +235,7 @@ def mainloop():
                 fltk.efface_tout()
                 draw()
 
+
             # Zoom
             elif touche == '+' or touche == '=':
                 zoom = min(zoom + ZOOM_STEP, MAX_ZOOM)
@@ -266,6 +268,13 @@ def mainloop():
             # Toggle riviere naturelle
             elif touche.lower() == 'r':
                 map.riviere = not map.riviere
+                fltk.efface_tout()
+                draw()
+
+            # Decour
+            elif ui.none_active() and touche.lower() == 'd':
+                solver = Solver()
+                solver.decorate(map)
                 fltk.efface_tout()
                 draw()
 
@@ -328,6 +337,11 @@ def mainloop():
                             grille, deco, tiles_to_deco = res
                             map = Map(grille, deco, tiles_to_deco)
                     ui.change_state('saved')
+                    fltk.efface_tout()
+                    draw()
+
+                if touche == 'BackSpace':
+                    save.delete_map(current_page)
                     fltk.efface_tout()
                     draw()
 

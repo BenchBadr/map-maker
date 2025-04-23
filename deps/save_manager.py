@@ -146,5 +146,19 @@ def clear_saves():
     print('Fichiers de sauvegarde supprimés!')
     return True
 
+def delete_map(current_page):
+    """
+    Supprime un fichier de carte.
+    """
+    n = len(os.listdir('saves/maps'))
+    if n == 0:
+        return
+    current_page = current_page % n
+    name = os.listdir('saves/maps')[current_page][:-4]
+    os.remove(os.path.join('saves/maps', f"{name}.map"))
+    os.remove(os.path.join('saves/images', f"{name}.png"))
+    print(f"Fichier {name} supprimé!")
+    return True
+
 if __name__ == '__main__':
     clear_saves()

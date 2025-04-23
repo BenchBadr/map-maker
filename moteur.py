@@ -271,13 +271,6 @@ def mainloop():
                 fltk.efface_tout()
                 draw()
 
-            # Decour
-            elif ui.none_active() and touche.lower() == 'd':
-                solver = Solver()
-                solver.decorate(map)
-                fltk.efface_tout()
-                draw()
-
             # Déplacements de la carte
             elif touche in ['Left', 'Right', 'Up', 'Down']:
                 if not ui.get_state('saved'):
@@ -348,8 +341,8 @@ def mainloop():
                     fltk.efface_tout()
                     draw()
 
-            # Gestionnaire de sauvegardes
             if ui.none_active():
+                # Gestionnaire de sauvegardes
                 if touche.lower() == 's' or touche.lower() == 'o':
                     open_mode = False
                     if touche.lower() == 'o':
@@ -358,6 +351,20 @@ def mainloop():
                     if not ui.get_state('saved'):
                         ui.change_state('saved')
                         draw_popup('saved')
+
+                # Decor
+                if touche.lower() == 'd':
+                    solver = Solver(map)
+                    solver.decorate()
+                    fltk.efface_tout()
+                    draw()
+
+                # Solver con
+                if touche.lower() == 'i':
+                    solver = Solver(map)
+                    solver.solver_con()
+                    fltk.efface_tout()
+                    draw()
 
 
         elif ev[0] == 'Redimension':

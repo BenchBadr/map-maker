@@ -89,14 +89,14 @@ class Map:
 
         if i < 0:
             self.grille = [[None for _ in range(self.dim[1])] for _ in range(-i)] + self.grille
-            tsl = (-i, 0)
+            tsl[0] = -i
             i = 0
         elif i >= self.dim[0]:
             self.grille += [[None for _ in range(self.dim[1])] for _ in range(i - self.dim[0] + 1)]
         if j < 0:
             for k in range(len(self.grille)):
                 self.grille[k] = [None for _ in range(-j)] + self.grille[k]
-            tsl = (tsl[0], -j)
+            tsl[1] = -j
             j = 0
         elif j >= self.dim[1]:
             for k in range(len(self.grille)):
@@ -108,18 +108,21 @@ class Map:
         # Si on doit translater les coords,
         # On ajuste les decos
 
-        if tsl != (0,0):
+        if tsl != [0,0]:
 
             deco_back = self.deco.copy()
+            tiles_to_deco_back = self.tiles_to_deco.copy()
             self.deco = {}
+            self.tiles_to_deco = {}
             # On ajuste les tiles_to_deco
-            for tile_deco, coords_list in self.tiles_to_deco.items():
+            for tile_deco, coords_list in tiles_to_deco_back.items():
                 new_co_list = []
                 for coords in coords_list:
                     new_coords = (coords[0] + tsl[0], coords[1] + tsl[1])
                     self.deco[new_coords] = deco_back[coords]
                     new_co_list.append(new_coords)
-                self.tiles_to_deco[tile_deco] = new_co_list
+                new_tile = (tile_deco[0] + tsl[0], tile_deco[1] + tsl[1])
+                self.tiles_to_deco[new_tile] = new_co_list
 
         # Si suppression de tuile
         # Supprimer les décos associée
@@ -306,6 +309,7 @@ class Map:
     def get_vois(self, i:int,j:int, tested:tuple, nom_tuile:str) -> list[tuple[int,int]]:
         '''
         Renvoie les cases voisines où se poursuit la rivière
+        > [!warn] Utilisé spécifiquement pour les rivières.
         '''
         dir =  [
             # Vertical

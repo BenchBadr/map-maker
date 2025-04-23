@@ -8,17 +8,18 @@ addons.init(fltk)
 from math import ceil
 
 class Solver:
-    def __init__(self):
-        pass
+    def __init__(self, map):
+        self.map = map
 
-    def decorate(self, map, freq:float =.5) -> None:
+    def decorate(self, freq:float =.5) -> None:
         '''
         Décore automatiquement la carte
-        /!\ Ne se sert pas des plages décorables de `modules/plage_deco.py`
+        /!\\ Ne se sert pas des plages décorables de `modules/plage_deco.py`
             Par soucis de performance, les tuiles éligibles sont réduites aux tuiles unies blanches
                 (à savoir `PPPP` et `SSSS`)
             Cependant, une tuile pourra être à cheval avec une autre non unie.
         '''
+        map = self.map
         # On efface les décos presentes
         map.deco = {}
 
@@ -57,7 +58,7 @@ class Solver:
 
                     # On détermine la zone de ce biome
                     zone = parcours_zone(x, y, tile)
-                    print(zone)
+
                     aire = len(zone)
                     nb_deco = ceil(aire * freq)
                     for _ in range(nb_deco):
@@ -65,12 +66,43 @@ class Solver:
                         dx, dy = dx + random.random(), dy + random.random()
 
                         biome, dec_pos = map.deco_possible(dx, dy)
-                        print(dec_pos)
+
                         if dec_pos:
                             deco = random.choice(dec_pos)
                             map.add_decoration(f"{deco}|{dy}*{dx}")
 
 
+    def solver_con(self):
+        '''
+        Résout les conflits de décorations
+        '''
+        map = self.map
 
-        
+        for y, row in enumerate(map.grille):
+            for x, tile in enumerate(row):
+                if map.grille[y][x] is None:
+                    tuile_pos = map.tuiles_possibles(x, y)
+                    if tuile_pos:
+                        tile = random.choice(tuile_pos)
+                        map.grille[y][x] = tile
+        self.decorate(map)
 
+
+
+
+# juste pour moi
+# le sac à dos 
+
+def sac_a_dos(ens, somme):
+    if (somme == 0):
+        return []
+    if (somme < 0):
+        return None
+    if len(ens) == 0:
+        return None
+    res = sac_a_dos(ens[1:], somme - ens[0])
+    if res is not None:
+        res.append(ens[0])
+        return res
+    else:
+        return sac_a_dos(ens[1:], somme)

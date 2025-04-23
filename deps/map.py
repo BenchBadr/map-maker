@@ -110,19 +110,16 @@ class Map:
 
         if tsl != (0,0):
 
-            new_deco = {}
-            
+            deco_back = self.deco.copy()
+            self.deco = {}
             # On ajuste les tiles_to_deco
-            for tile, coords_list in self.tiles_to_deco.items():
+            for tile_deco, coords_list in self.tiles_to_deco.items():
                 new_co_list = []
                 for coords in coords_list:
                     new_coords = (coords[0] + tsl[0], coords[1] + tsl[1])
+                    self.deco[new_coords] = deco_back[coords]
                     new_co_list.append(new_coords)
-                    new_deco[new_coords] = self.deco[coords]
-                self.tiles_to_deco[tile] = new_co_list
-
-            # On ajuste les decos
-            self.deco = new_deco
+                self.tiles_to_deco[tile_deco] = new_co_list
 
         # Si suppression de tuile
         # Supprimer les décos associée
@@ -691,6 +688,8 @@ class Map:
             # Vérifie chevauchement avec les décos existantes
             overlap = False
             for deco_coords, (deco_path, deco_size) in self.deco.items():
+                if deco_coords == (x,y):
+                    continue
                 dx, dy = deco_coords
                 dw2, dh2 = deco_size
                 # Rectangle de la déco existante
@@ -704,21 +703,21 @@ class Map:
             if overlap:
                 continue
 
-            # Si la tuile n'est pas à cheval
-            if arrivee == source:
-                if tuile_source in ['PPPP', 'SSSS']:
-                    # pas de bbox
-                    deco_ok.append(candidat)
-                else:
-                    # On teste si le placement est valide dans la tuile
-                    if test_rectangle(tuile_source, (x,y), (x + dw, y + dh)):
-                        deco_ok.append(candidat)
-            else:
-                # On teste si valide dans source
-                if not(tuile_source in ['PPPP', 'SSSS'] or \
-                      test_rectangle(tuile_source, (x,y), (source[0] + 1, source[1] + 1))):
+            # on check la validité de source
+            if not tuile_source in ['PPPP', 'SSSS']:
+                # alors bbox, donc check validité
+                local_x = x - source[0]
+                local_y = y - source[1]
+                if not test_rectangle(tuile_source, (local_x, local_y), (local_x + dw, local_y + dh)):
                     continue
-                # On teste biome valide
+
+
+            if arrivee == source:
+                deco_ok.append(candidat)
+
+            # si la deco est à cheval
+            else:
+                # On teste biome valide dans l'arrivée
                 if biome == 'mer':
                     if arrivee_tuile != 'SSSS':
                         continue
@@ -726,7 +725,7 @@ class Map:
                     if 'P' not in arrivee_tuile:
                         continue
                 # On teste position valide
-                delta_dw, delta_dh = dw - abs(x - 1), dh - abs(y - 1)
+                delta_dw, delta_dh = dw - abs(arrivee[0] - 1), dh - abs(arrivee[1] - 1)
                 if test_rectangle(arrivee_tuile, (0,0), (delta_dw, delta_dh)):
                     deco_ok.append(candidat)
         
@@ -758,8 +757,12 @@ class Map:
         if source not in self.tiles_to_deco:
             self.tiles_to_deco[source] = []
         self.tiles_to_deco[source].append(coords)
+
         arrive = floor(coords[0] + ims[0]), floor(coords[1] + ims[1])
+
         if arrive != source:
+            if arrive not in self.tiles_to_deco:
+                self.tiles_to_deco[arrive] = []
             self.tiles_to_deco[arrive].append(coords)
 
 

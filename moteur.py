@@ -336,6 +336,9 @@ def mainloop():
                         if res:
                             grille, deco, tiles_to_deco = res
                             map = Map(grille, deco, tiles_to_deco)
+
+                            # Garder une consistence de déplacement
+                            map.deplacement_map = deplacement_map
                     ui.change_state('saved')
                     fltk.efface_tout()
                     draw()

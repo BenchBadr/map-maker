@@ -203,6 +203,8 @@ def mainloop():
                     # remove balises deco
                     if tuple(tuile) in solver.visited:
                         solver.visited.remove(tuple(tuile))
+
+                    zoom = 1
                     fltk.efface_tout()
                     draw()
 
@@ -298,7 +300,7 @@ def mainloop():
                     draw()
 
             # Déplacements de la carte
-            elif touche in ['Left', 'Right', 'Up', 'Down']:
+            if touche in ['Left', 'Right', 'Up', 'Down']:
                 if not ui.get_state('saved'):
                     # Gauche
                     if touche == 'Left':
@@ -369,7 +371,7 @@ def mainloop():
 
             if ui.none_active():
                 if touche == 'space':
-                    game_mode = True
+                    game_mode = not game_mode
                     zoom = 1
                     fltk.efface_tout()
                     draw()
@@ -391,9 +393,15 @@ def mainloop():
                         fltk.efface_tout()
                         draw()
 
-                    # Solver con
+                    # Redim + (1,1)
+                    if touche.lower() == 'e':
+                        map.edit_tile(map.dim[0], map.dim[1], None)
+                        fltk.efface_tout()
+                        draw()
+                        
+                    # Solver
                     if touche.lower() == 'i':
-                        debug_step = float('inf')
+                        debug_step = 2#float('inf')
                         if not solver.solver(map, debug_step):
                             ui.change_state('solverr')
                             draw_popup('solverr')

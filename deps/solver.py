@@ -140,7 +140,8 @@ class Solver:
         '''
         self.vides = None
         self.map = map
-        vides = self.empty_tiles()
+
+        self.empty_tiles()
 
         def backtrack(step=0):
             # ... pour debug
@@ -148,11 +149,11 @@ class Solver:
                 return True
         
             # Solution trouvée
-            if not vides:
+            if not self.vides:
                 return True
 
             # choix optimal (par constructions de `vides`)
-            i, j, ct = vides[0]
+            i, j, ct = self.vides[0]
             tuiles_pos = self.map.tuiles_possibles(i, j)
             if not tuiles_pos:
                 return False
@@ -160,20 +161,23 @@ class Solver:
             random.shuffle(tuiles_pos)
 
             for tuile in tuiles_pos:
+                
                 self.fill_tile(i, j, ct, tuile)
-                if backtrack(step):
+
+                if backtrack(step + 1):
                     return True
+                
                 self.map.grille[j][i] = None
-                self.vides.append((i, j, ct))
+                self.vides.insert(0, (i, j, ct))
 
             return False
 
         if self.vides:
             r =  backtrack()
-            self.vides = []
             self.decorate()
             if not r:
                 return False
+            self.vides = []
         
         return True
 

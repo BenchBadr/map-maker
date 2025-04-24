@@ -689,7 +689,7 @@ class Map:
             arrivee = floor(x + dw), floor(y + dh)
 
             # Si arrivee hors champ
-            if not(0 <= arrivee[0] < self.dim[1] and 0 <= arrivee[1] < self.dim[0]):
+            if not(0 <= arrivee[0] < self.dim[0] and 0 <= arrivee[1] < self.dim[1]):
                 continue
             
             arrivee_tuile = self.grille[arrivee[0]][arrivee[1]]

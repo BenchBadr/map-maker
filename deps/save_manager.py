@@ -32,7 +32,10 @@ def file_selector(key:str, x:int, y:int, x2:int, y2:int, args_func:dict) -> None
     c = x + p, y2
     for i in range(n + 1 if not open_mode else n):
         remp = '#58b5ca' if i == current_page else '#3c3c3c'
-        fltk.cercle(c[0] + 4 * i * unit, c[1], unit, remplissage=remp, epaisseur=0, tag=key)
+        absi = c[0] + 4 * i * unit
+        if open_mode:
+            absi += unit * 2
+        fltk.cercle(absi, c[1], unit, remplissage=remp, epaisseur=0, tag=key)
 
     c2 = x, y + unit, x2, y2 - unit * 2
     sub_page = x2 - x, y2 - unit * 2 - y + unit

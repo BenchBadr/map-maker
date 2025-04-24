@@ -156,10 +156,12 @@ class Solver:
             tuiles_pos = self.map.tuiles_possibles(i, j)
             if not tuiles_pos:
                 return False
+            
             random.shuffle(tuiles_pos)
+
             for tuile in tuiles_pos:
                 self.fill_tile(i, j, ct, tuile)
-                if backtrack(step + 1):
+                if backtrack(step):
                     return True
                 self.map.grille[j][i] = None
                 self.vides.append((i, j, ct))

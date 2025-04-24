@@ -6,7 +6,7 @@ except ImportError:
     import deps.modules.fltk as fltk,deps.modules.fltk_addons as addons
 addons.init(fltk)
 from math import ceil, floor
-
+import time
 class Solver:
     def __init__(self, map):
         self.map = map
@@ -117,41 +117,33 @@ class Solver:
             cases_vides.sort(key=lambda t: t[2])
             self.vides = cases_vides
         return self.vides
-    
-    def fill_tile(self, i:int, j:int, ct:int, tile:str) -> None:
-        '''
-        Remplace une case vide.
-        Args:
-            i, j (int): coordonnées de la case
-            tile (str): tuile à placer
-        '''
-        self.map.grille[j][i] = tile
 
 
-    def solver(self, map, debug_step=float('inf')):
+    def solver(self, map, draw = None) -> bool:
         '''
         Résout les conflits de décorations
         Args:
             map (Map): carte à résoudre
-            debug_step (int): limite le nombre d'appels, afin de permettre une visualisation progressive
+        Returns:
+            bool: True si la carte est résolue, False sinon
+                Permet par la suite l'affichage 'dune erreur 
+                si les contraintes ne permettent pas de résolution.
         '''
         self.vides = None
         self.map = map
 
         self.empty_tiles()
 
-        def backtrack(step=0):
-            print(f"{round(1/(len(self.vides)+1)*100,2)}%")
-            # ... pour debug
-            if step >= debug_step:
-                return True
-        
+        def backtrack(vides):
+            print(f"{round((1 - len(vides)/len(self.vides))*100,2)}%")
+
             # Solution trouvée
-            if not self.vides:
+            if not vides:
                 return True
 
             # choix optimal (par constructions de `vides`)
-            i, j, ct = self.vides[0]
+            i, j, ct = vides[0]
+
             tuiles_pos = self.map.tuiles_possibles(i, j)
 
             if not tuiles_pos:
@@ -161,19 +153,21 @@ class Solver:
 
             for tuile in tuiles_pos:
                 
-                self.fill_tile(i, j, ct, tuile)
-                temp = self.vides.pop(0)
+                self.map.grille[j][i] = tuile
 
-                if backtrack(step + 1):
+                # visualisation (optionnelle, si en mode debug)
+                if self.map.debug and draw is not None:
+                    time.sleep(.01)
+                    draw()
+
+                if backtrack(vides[1:]):
                     return True
                 
-                self.map.grille[j][i] = None
-                self.vides.insert(0, temp)
 
             return False
 
         if self.vides:
-            r = backtrack()
+            r = backtrack(self.vides.copy())
             self.decorate()
             if not r:
                 return False

@@ -5,6 +5,8 @@ import deps.save_manager as save
 from deps.solver import Solver
 addons.init(fltk)
 from math import floor
+import sys
+sys.setrecursionlimit(10000)  # pour des grilles très grandes
 
 def mainloop():
     #Variables à définir
@@ -88,7 +90,7 @@ def mainloop():
         fltk.rectangle(0, 0, w, h, remplissage="black")
         # grid
         ui.grid_selectors(dim, zoom = zoom, deplacement_map = deplacement_map)
-
+        
         # map 
         map.display_map(unit, (w)//2, (h)//2, zoom=zoom, deplacement_map=deplacement_map)
         
@@ -401,8 +403,11 @@ def mainloop():
 
                     # Solver
                     if touche.lower() == 'i':
-                        debug_step = float('inf')
-                        if not solver.solver(map, debug_step):
+                        def draw_func():
+                            fltk.efface_tout()
+                            draw()
+                            fltk.mise_a_jour()
+                        if not solver.solver(map, draw_func):
                             ui.change_state('solverr')
                             draw_popup('solverr')
                         fltk.efface_tout()

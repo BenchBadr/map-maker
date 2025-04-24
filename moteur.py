@@ -181,9 +181,12 @@ def mainloop():
                 keys = tag.split('_')
                 if keys[0] == 'grid':
                     tuile = [int(n) for n in tag.split('_')[1].split('*')]
-                    map.edit_tile(tuile[1], tuile[0], None)
+                    tsl = map.edit_tile(tuile[1], tuile[0], None)[1]
                     if tuple(tuile) in solver.visited:
                         solver.visited.remove(tuile)
+
+                    # reshape tsl
+                    solver.transl_visited(tsl)
                     fltk.efface_tout()
                     draw()
 
@@ -209,7 +212,7 @@ def mainloop():
                 if keys[0] == 'expand':
                     ui.set_fullscreen(keys[1])
                 if keys[0] == 'tile':
-                    selected_tile = map.edit_tile(selected_tile[1], selected_tile[0], keys[1])
+                    selected_tile = map.edit_tile(selected_tile[1], selected_tile[0], keys[1])[0]
                     # ui.change_state('popup')
                 if keys[0] == 'decor':
                     map.add_decoration('_'.join(keys[1:]))
@@ -357,7 +360,7 @@ def mainloop():
 
                 # Decor
                 if touche.lower() == 'd':
-                    solver.decorate(map)
+                    solver.decorate(map, clear=False)
                     fltk.efface_tout()
                     draw()
 

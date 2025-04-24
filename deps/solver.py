@@ -5,7 +5,7 @@ try:
 except ImportError:
     import deps.modules.fltk as fltk,deps.modules.fltk_addons as addons
 addons.init(fltk)
-from math import ceil
+from math import ceil, floor
 
 class Solver:
     def __init__(self, map):
@@ -13,19 +13,37 @@ class Solver:
         self.visited = set()
         self.vides = None
 
-    def decorate(self, map = None, freq:float =.5) -> None:
+    def transl_visited(self, tsl):
+        '''
+        En cas de déplacement de la carte,
+        ajuste les coordonnées visitées
+        '''
+        new_visited = set()
+        for i, j in self.visited:
+            new_visited.add(i + tsl[tsl[0]], j + tsl[tsl[1]])
+        self.visited = new_visited
+
+    def decorate(self, map = None, clear=False, freq:float =.5) -> None:
         '''
         Décore automatiquement la carte
-        /!\\ Ne se sert pas des plages décorables de `modules/plage_deco.py`
+        [!] Ne se sert pas des plages décorables de `modules/plage_deco.py`
             Par soucis de performance, les tuiles éligibles sont réduites aux tuiles unies blanches
                 (à savoir `PPPP` et `SSSS`)
             Cependant, une tuile pourra être à cheval avec une autre non unie.
+        Args:
+            map (Map): carte à décorer (optionnel si fourni ailleurs)
+            clear (bool): permet de réinitialiser les décos
+            freq (float): fréquence de déco
         '''
         if map is None:
             map = self.map
 
-        # On efface les décos presentes
-        map.deco = {}
+        # On ne garde que les décos placées au préalable
+        # de façon automatique
+
+        if clear:
+            self.visited = set()
+            map.deco = {}
 
         # visited = set()
 
@@ -78,12 +96,23 @@ class Solver:
 
     def empty_tiles(self):
         '''
-        Sélectionne les cases vides de la carte
-        Optimisé (mémorise d'une utilisation à l'autre)
+        Sélectionne les cases vides de la carte, triées par nombre de tuiles possibles (plus contrainte en premier).
+        Optimisé avec mise en cache des cases vides et de leurs contraintes.
+        De plus, tri la liste en fonction du nombre de contraintes
+        Returns:
+            list: Liste de tuples (x, y, nb_possibles) triée par nb_possibles croissant.
         '''
         map = self.map
-        if not self.vides:
-            cases_vides = [(x, y) for y in range(map.dim[0]) for x in range(map.dim[1]) if map.grille[y][x] is None]
+        if self.vides is None:
+            # TODO : Memo `tuiles_possibles` (tâche 4.1.4)
+            cases_vides = []
+            for y in range(map.dim[0]):
+                for x in range(map.dim[1]):
+                    if map.grille[y][x] is None:
+                        nb_possibles = len(map.tuiles_possibles(x, y))
+                        cases_vides.append((x, y, nb_possibles))
+            # Tri croissant de contraintes (moins il y a de tuiles plus c'est contraint)
+            cases_vides.sort(key=lambda t: t[2])
             self.vides = cases_vides
         return self.vides
     
@@ -99,17 +128,36 @@ class Solver:
             self.vides.remove((i, j))
 
 
-    def solver(self, map):
+    def solver(self, map, debug_step=float('inf')):
         '''
         Résout les conflits de décorations
+        Args:
+            map (Map): carte à résoudre
+            debug_step (int): limite le nombre d'appels, afin de permettre une visualisation progressive
         '''
         self.map = map
+        step = 0
+        vides = self.empty_tiles()
+        step = [0]
 
-        for i, j in self.empty_tiles():
-            tuile_pos = self.map.tuiles_possibles(i, j)
-            if tuile_pos:
-                tile = random.choice(tuile_pos)
-                self.fill_tile(i, j, tile)
+        def backtracker():
+            if step[0] >= debug_step:
+                # Visualisation par étapes
+                return False
+            
+            if len(vides) == 0:
+                # rien à compléter
+                return
+            
+            for i, j in vides:
+                tuile_pos = self.map.tuiles_possibles(i, j)
+                if not tuile_pos:
+                    return False
+
+
+
+
+        self.vides = []
         self.decorate()
 
 

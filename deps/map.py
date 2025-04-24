@@ -132,7 +132,7 @@ class Map:
                     del self.deco[coords]
                 del self.tiles_to_deco[(i, j)]
 
-        return (j + self.deplacement_map[1], i + self.deplacement_map[0])
+        return (j + self.deplacement_map[1], i + self.deplacement_map[0]), tsl
 
     def display_map(self, unit, c0, c1, zoom = 1, deplacement_map = (0,0)) -> None:
         """

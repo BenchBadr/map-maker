@@ -10,8 +10,10 @@ from math import ceil
 class Solver:
     def __init__(self, map):
         self.map = map
+        self.visited = set()
+        self.vides = None
 
-    def decorate(self, freq:float =.5) -> None:
+    def decorate(self, map = None, freq:float =.5) -> None:
         '''
         Décore automatiquement la carte
         /!\\ Ne se sert pas des plages décorables de `modules/plage_deco.py`
@@ -19,11 +21,13 @@ class Solver:
                 (à savoir `PPPP` et `SSSS`)
             Cependant, une tuile pourra être à cheval avec une autre non unie.
         '''
-        map = self.map
+        if map is None:
+            map = self.map
+
         # On efface les décos presentes
         map.deco = {}
 
-        visited = set()
+        # visited = set()
 
         def parcours_zone(x, y, tuile):
             '''
@@ -34,9 +38,9 @@ class Solver:
             s = [(x,y)]
             while s:
                 cx, cy = s.pop()
-                if (cx, cy) in visited:
+                if (cx, cy) in self.visited:
                     continue
-                visited.add((cx, cy))
+                self.visited.add((cx, cy))
                 zone.append((cx, cy))
 
                 if map.grille[cy][cx] != tuile:
@@ -45,7 +49,7 @@ class Solver:
                 for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
                     nx, ny = cx + dx, cy + dy
                     if 0 <= nx < len(map.grille[0]) and 0 <= ny < len(map.grille):
-                        if (nx, ny) not in visited and map.grille[ny][nx] == tuile:
+                        if (nx, ny) not in self.visited and map.grille[ny][nx] == tuile:
                             s.append((nx, ny))
 
             return zone
@@ -53,7 +57,7 @@ class Solver:
         for y, row in enumerate(map.grille):
             for x, tile in enumerate(row):
                 if tile == 'PPPP' or tile == 'SSSS':
-                    if (x, y) in visited:
+                    if (x, y) in self.visited:
                         continue
 
                     # On détermine la zone de ce biome
@@ -72,20 +76,41 @@ class Solver:
                             map.add_decoration(f"{deco}|{dy}*{dx}")
 
 
-    def solver_con(self):
+    def empty_tiles(self):
+        '''
+        Sélectionne les cases vides de la carte
+        Optimisé (mémorise d'une utilisation à l'autre)
+        '''
+        map = self.map
+        if not self.vides:
+            cases_vides = [(x, y) for y in range(map.dim[0]) for x in range(map.dim[1]) if map.grille[y][x] is None]
+            self.vides = cases_vides
+        return self.vides
+    
+    def fill_tile(self, i:int, j:int, tile:str) -> None:
+        '''
+        Remplace une case vide.
+        Args:
+            i, j (int): coordonnées de la case
+            tile (str): tuile à placer
+        '''
+        self.map.grille[j][i] = tile
+        if self.vides:
+            self.vides.remove((i, j))
+
+
+    def solver(self, map):
         '''
         Résout les conflits de décorations
         '''
-        map = self.map
+        self.map = map
 
-        for y, row in enumerate(map.grille):
-            for x, tile in enumerate(row):
-                if map.grille[y][x] is None:
-                    tuile_pos = map.tuiles_possibles(x, y)
-                    if tuile_pos:
-                        tile = random.choice(tuile_pos)
-                        map.grille[y][x] = tile
-        self.decorate(map)
+        for i, j in self.empty_tiles():
+            tuile_pos = self.map.tuiles_possibles(i, j)
+            if tuile_pos:
+                tile = random.choice(tuile_pos)
+                self.fill_tile(i, j, tile)
+        self.decorate()
 
 
 

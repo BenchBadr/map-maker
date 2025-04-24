@@ -33,6 +33,7 @@ def mainloop():
     open_mode = True
 
     map = Map()
+    solver = Solver(map)
 
 
     # Appuyer sur `Escape` pour toggle le mode debug
@@ -181,6 +182,8 @@ def mainloop():
                 if keys[0] == 'grid':
                     tuile = [int(n) for n in tag.split('_')[1].split('*')]
                     map.edit_tile(tuile[1], tuile[0], None)
+                    if tuple(tuile) in solver.visited:
+                        solver.visited.remove(tuile)
                     fltk.efface_tout()
                     draw()
 
@@ -354,15 +357,13 @@ def mainloop():
 
                 # Decor
                 if touche.lower() == 'd':
-                    solver = Solver(map)
-                    solver.decorate()
+                    solver.decorate(map)
                     fltk.efface_tout()
                     draw()
 
                 # Solver con
                 if touche.lower() == 'i':
-                    solver = Solver(map)
-                    solver.solver_con()
+                    solver.solver(map)
                     fltk.efface_tout()
                     draw()
 

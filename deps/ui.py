@@ -91,7 +91,7 @@ def create_popup(key:list[str, bool],
                  color="#b8b8b6", 
                  max_width=float('inf'), 
                  max_height=float('inf'), 
-                 content:str = None) -> None:
+                 content:list[str, str] = None) -> None:
     """
     Crée un popup avec un message et un bouton de fermeture. 
 
@@ -251,10 +251,20 @@ def create_popup(key:list[str, bool],
         wrap_func(key[0],c[0]+r, c[1]+r, c[0]+(width - r), c[1]+(height - r), args_func)
 
     if content != None:
-        taille = floor((min(width, height) - r) // len(content))
         x, y = c[0] + r, c[1] + r
         x2, y2 = c[0] + (width - r), c[1] + (height - r)
-        fltk.texte(x, y2 / 2, content, couleur='#aaa', taille=taille, tag=key, police='Helvetica')
+        c2 = x, y
+        sub_page = x2 - x, y2 - y
+        a, b, r = c2[0] + sub_page[0] // 2, c2[1] + sub_page[1] // 2, min(sub_page)//4
+        # Texte
+        t1 = content[0]
+        t2 = content[1]
+
+        taille1 = int((5*r)//len(t1))
+        taille2 = int((5*r)//len(t2))
+
+        fltk.texte(a - taille1 * len(t1) * .3, b - taille1,  t1, couleur='white', tag=key, taille=taille1)
+        fltk.texte(a - taille2 * len(t2) * .3, b + taille1, t2, couleur='#888', tag=key, taille=taille2)
         return
 
 

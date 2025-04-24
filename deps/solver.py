@@ -143,13 +143,15 @@ class Solver:
         vides = self.empty_tiles()
 
         def backtrack(step=0):
-
+            # ... pour debug
             if step >= debug_step:
                 return True
         
+            # Solution trouvée
             if not vides:
                 return True
 
+            # choix optimal (par constructions de `vides`)
             i, j, ct = vides[0]
             tuiles_pos = self.map.tuiles_possibles(i, j)
             if not tuiles_pos:
@@ -160,15 +162,18 @@ class Solver:
                 if backtrack(step + 1):
                     return True
                 self.map.grille[j][i] = None
+                self.vides.append((i, j, ct))
 
             return False
 
         if self.vides:
-            backtrack()
-
-
-        self.vides = []
-        self.decorate()
+            r =  backtrack()
+            self.vides = []
+            self.decorate()
+            if not r:
+                return False
+        
+        return True
 
 
 

@@ -74,6 +74,10 @@ def mainloop():
                             map.deco_selector,
                             args_func={'tile':selected_tile, 'coords':memo_coords, 'state':state_on_click},
                             max_width=500, max_height=500)
+        if key == 'solve_error':
+            ui.create_popup(['solve_error', False], 
+                            "Solver Error", content=['Pas de solution trouvée', 'La configuration donnée est impossible'],
+                            max_width=500, max_height=500)
     def draw():
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
         dim = map.dim
@@ -100,6 +104,7 @@ def mainloop():
         draw_popup('popup')
         draw_popup('saved')
         draw_popup('deco')
+        draw_popup('solve_error')
 
     draw()
 
@@ -389,7 +394,8 @@ def mainloop():
                     # Solver con
                     if touche.lower() == 'i':
                         debug_step = float('inf')
-                        solver.solver(map, debug_step)
+                        if not solver.solver(map, debug_step):
+                            ui.change_state('solve_error')
                         fltk.efface_tout()
                         draw()
 

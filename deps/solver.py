@@ -135,8 +135,6 @@ class Solver:
         self.empty_tiles()
 
         def backtrack(vides):
-            print(f"{round((1 - len(vides)/len(self.vides))*100,2)}%")
-
             # Solution trouvée
             if not vides:
                 return True
@@ -144,7 +142,8 @@ class Solver:
             # choix optimal (par constructions de `vides`)
             i, j, ct = vides[0]
 
-            tuiles_pos = self.map.tuiles_possibles(i, j)
+            dpm = self.map.deplacement_map
+            tuiles_pos = self.map.tuiles_possibles(i+dpm[1], j+dpm[0])
 
             if not tuiles_pos:
                 return False
@@ -158,6 +157,7 @@ class Solver:
                 # visualisation (optionnelle, si en mode debug)
                 if self.map.debug and draw is not None:
                     time.sleep(.01)
+                    print(f"{round((1 - len(vides)/len(self.vides))*100,2)}%")
                     draw()
 
                 if backtrack(vides[1:]):

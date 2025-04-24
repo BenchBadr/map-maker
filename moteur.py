@@ -84,13 +84,16 @@ def mainloop():
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
         dim = map.dim
         size = min(w, h)
-        unit = size//max(dim)
+        if not game_mode:
+            unit = size//max(dim)
+        else:
+            unit = 1/3 * size
 
         # window background
         fltk.rectangle(0, 0, w, h, remplissage="black")
         # grid
         ui.grid_selectors(dim, zoom = zoom, deplacement_map = deplacement_map)
-        
+
         # map 
         map.display_map(unit, (w)//2, (h)//2, zoom=zoom, deplacement_map=deplacement_map)
         
@@ -279,6 +282,7 @@ def mainloop():
                     # Permet un double clic
                     if zoom == 1:
                         deplacement_map = (0, 0)
+                        map.deplacement_map = (0, 0)
                     zoom = 1
                     fltk.efface_tout()
                     draw()
@@ -327,6 +331,16 @@ def mainloop():
                     # deplacement relatif
                     dep_rel = (deplacement_map[0] - delta_dep_map[0], deplacement_map[1] - delta_dep_map[1])
                     selected_tile = (selected_tile[0] + dep_rel[1], selected_tile[1] + dep_rel[0])
+
+                # Redim + auto-fill en game mode <=> defilement
+                if game_mode:
+                    if deplacement_map!= (0, 0):
+                        adj_a = map.dim[0] - deplacement_map[0]
+                        adj_b = map.dim[1] - deplacement_map[1]
+                        print(adj_a, adj_b, map.dim)
+                        # if adj_a >= map.dim[0]:
+                        #     map.edit_tile(adj_a, 0, None)
+                        solver.solver(map)
                 fltk.efface_tout()
                 draw()
 

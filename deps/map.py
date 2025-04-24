@@ -510,6 +510,7 @@ class Map:
         Returns:
             options (list) : Liste contenant les tuiles possibles.
         """
+
         options = []
         for tuile in self.tuiles.keys():
             # Prend soin d'ajuster en fonction du déplacement

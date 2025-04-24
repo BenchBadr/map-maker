@@ -212,9 +212,9 @@ class Map:
         pages = ceil(s / (n_x * n_y))
 
         if pages == 0:
-            c2 = x, y + unit, x2, y2 // 2
-            sub_page = x2 - x, y2 - y + unit
-            a,b,r,rat = c2[0]+sub_page[0]//2, c2[1]+sub_page[1]//2, min(sub_page)//4, .6
+            c2 = x, y
+            sub_page = x2 - x, y2 - y
+            a, b, r = c2[0] + sub_page[0] // 2, c2[1] + sub_page[1] // 2, min(sub_page)//4
             # Texte
             t1 = 'Placement impossible'
             t2 = 'Supprimez des tuiles puis réessayez'
@@ -222,8 +222,8 @@ class Map:
             taille1 = int((5*r)//len(t1))
             taille2 = int((5*r)//len(t2))
 
-            fltk.texte(a - taille1*len(t1)*.3, c2[1], t1, couleur='white', tag=key, taille=taille1)
-            fltk.texte(a - taille2*len(t2)*.3, c2[1] + taille1 * 2, t2, couleur='#888', tag=key, taille=taille2)
+            fltk.texte(a - taille1 * len(t1) * .3, b - taille1,  t1, couleur='white', tag=key, taille=taille1)
+            fltk.texte(a - taille2 * len(t2) * .3, b + taille1, t2, couleur='#888', tag=key, taille=taille2)
             return
 
         self.current_page = min(max(0,self.current_page), pages - 1)

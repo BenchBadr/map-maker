@@ -23,7 +23,7 @@ class Solver:
             new_visited.add((i + tsl[0], j + tsl[1]))
         self.visited = new_visited
 
-    def decorate(self, map = None, clear=False, freq:float =.5) -> None:
+    def decorate(self, map = None, clear=False, freq:float =.8) -> None:
         '''
         Décore automatiquement la carte
         [!] Ne se sert pas des plages décorables de `modules/plage_deco.py`

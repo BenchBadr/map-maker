@@ -97,6 +97,8 @@ Un événement `LacheGauche` a été ceéé, utilisant l'événement `<ButtonRel
     - Open file through manager
 - `Backspace`
     - When in save manager, delete files
+- `E`
+    - Expand map + (1,1) dim
 
 # Ouverture
 

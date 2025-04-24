@@ -334,8 +334,8 @@ def grid(dim: list[int, int], zoom:float = 1, color: str = 'blue') -> None:
     base_y = (h - grid_height) // 2
 
     # now use fltk.ligne
-    for i in range((h - grid_height)//(-unit), dim[1] + 1 + (h - grid_height)//(unit*2)):
-        idx = i # base_y // unit
+    for i in range((h - grid_height)//(-unit), dim[1] + 2 + (h - grid_height)//(unit*2)):
+        idx = i
         fltk.ligne(0, base_y + idx * unit, w, base_y + idx * unit, couleur=color)
     for j in range( (w - grid_width)//(-unit*2),dim[0] + 1 + (w - grid_width)//(unit*2)):
         idx = j

@@ -127,9 +127,6 @@ class Solver:
         '''
         self.map.grille[j][i] = tile
 
-        if self.vides and (i, j, ct) in self.vides:
-            self.vides.remove((i, j, ct))
-
 
     def solver(self, map, debug_step=float('inf')):
         '''
@@ -144,6 +141,7 @@ class Solver:
         self.empty_tiles()
 
         def backtrack(step=0):
+            print(f"{round(1/(len(self.vides)+1)*100,2)}%")
             # ... pour debug
             if step >= debug_step:
                 return True
@@ -155,6 +153,7 @@ class Solver:
             # choix optimal (par constructions de `vides`)
             i, j, ct = self.vides[0]
             tuiles_pos = self.map.tuiles_possibles(i, j)
+
             if not tuiles_pos:
                 return False
             
@@ -163,17 +162,18 @@ class Solver:
             for tuile in tuiles_pos:
                 
                 self.fill_tile(i, j, ct, tuile)
+                temp = self.vides.pop(0)
 
                 if backtrack(step + 1):
                     return True
                 
                 self.map.grille[j][i] = None
-                self.vides.insert(0, (i, j, ct))
+                self.vides.insert(0, temp)
 
             return False
 
         if self.vides:
-            r =  backtrack()
+            r = backtrack()
             self.decorate()
             if not r:
                 return False

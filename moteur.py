@@ -398,10 +398,10 @@ def mainloop():
                         map.edit_tile(map.dim[0], map.dim[1], None)
                         fltk.efface_tout()
                         draw()
-                        
+
                     # Solver
                     if touche.lower() == 'i':
-                        debug_step = 2#float('inf')
+                        debug_step = float('inf')
                         if not solver.solver(map, debug_step):
                             ui.change_state('solverr')
                             draw_popup('solverr')

@@ -20,7 +20,7 @@ class Solver:
         '''
         new_visited = set()
         for i, j in self.visited:
-            new_visited.add((i + tsl[tsl[0]], j + tsl[tsl[1]]))
+            new_visited.add((i + tsl[0], j + tsl[1]))
         self.visited = new_visited
 
     def decorate(self, map = None, clear=False, freq:float =.5) -> None:
@@ -90,13 +90,13 @@ class Solver:
                         dx, dy = dx + random.random(), dy + random.random()
 
                         biome, dec_pos = map.deco_possible(dy, dx)
-                        
+
                         if dec_pos:
                             deco = random.choice(dec_pos)
                             map.add_decoration(f"{deco}|{dy}*{dx}")
 
 
-    def empty_tiles(self):
+    def empty_tiles(self) -> list[tuple[int, int, int]]:
         '''
         Sélectionne les cases vides de la carte, triées par nombre de tuiles possibles (plus contrainte en premier).
         Optimisé avec mise en cache des cases vides et de leurs contraintes.
@@ -118,7 +118,7 @@ class Solver:
             self.vides = cases_vides
         return self.vides
     
-    def fill_tile(self, i:int, j:int, tile:str) -> None:
+    def fill_tile(self, i:int, j:int, ct:int, tile:str) -> None:
         '''
         Remplace une case vide.
         Args:
@@ -126,8 +126,9 @@ class Solver:
             tile (str): tuile à placer
         '''
         self.map.grille[j][i] = tile
-        if self.vides:
-            self.vides.remove((i, j))
+
+        if self.vides and (i, j, ct) in self.vides:
+            self.vides.remove((i, j, ct))
 
 
     def solver(self, map, debug_step=float('inf')):
@@ -137,29 +138,33 @@ class Solver:
             map (Map): carte à résoudre
             debug_step (int): limite le nombre d'appels, afin de permettre une visualisation progressive
         '''
+        self.vides = None
         self.map = map
-        step = 0
         vides = self.empty_tiles()
-        step = [0]
 
-        def backtracker(i, j):
-            if step[0] >= debug_step:
-                # Visualisation par étapes
+        def backtrack(step=0):
+
+            if step >= debug_step:
+                return True
+        
+            if not vides:
+                return True
+
+            i, j, ct = vides[0]
+            tuiles_pos = self.map.tuiles_possibles(i, j)
+            if not tuiles_pos:
                 return False
-            
-            if len(vides) == 0:
-                # rien à compléter
-                return
-            
-            tuile_pos = self.map.tuiles_possibles(i, j)
-            if tuile_pos:
-                choice = random.choice(tuile_pos)
-                self.fill_tile(i, j, choice)
-                return
-            else:
-                return backtracker(i, j)
+            random.shuffle(tuiles_pos)
+            for tuile in tuiles_pos:
+                self.fill_tile(i, j, ct, tuile)
+                if backtrack(step + 1):
+                    return True
+                self.map.grille[j][i] = None
 
+            return False
 
+        if self.vides:
+            backtrack()
 
 
         self.vides = []

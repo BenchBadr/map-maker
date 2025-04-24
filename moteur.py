@@ -32,6 +32,8 @@ def mainloop():
     current_page = 0
     open_mode = True
 
+    game_mode = False
+
     map = Map()
     solver = Solver(map)
 
@@ -77,6 +79,7 @@ def mainloop():
         dim = map.dim
         size = min(w, h)
         unit = size//max(dim)
+
         # window background
         fltk.rectangle(0, 0, w, h, remplissage="black")
         # grid
@@ -84,13 +87,15 @@ def mainloop():
 
         # map 
         map.display_map(unit, (w)//2, (h)//2, zoom=zoom, deplacement_map=deplacement_map)
-        if grid:
-            ui.grid(dim, zoom=zoom)
-
-        # selected tile
-        if selected_tile != None:
-            ui.draw_hovered(selected_tile[0], selected_tile[1], map.dim, color='green', zoom = zoom, deplacement_map=deplacement_map)
         
+        if not game_mode:
+            if grid:
+                ui.grid(dim, zoom=zoom)
+
+            # selected tile
+            if selected_tile != None:
+                ui.draw_hovered(selected_tile[0], selected_tile[1], map.dim, color='green', zoom = zoom, deplacement_map=deplacement_map)
+            
         # popup
         draw_popup('popup')
         draw_popup('saved')
@@ -147,14 +152,15 @@ def mainloop():
         
             
         # hover effects
-        if len(hovered) == 1:
-            tag = hovered[0]
-            if ui.none_active() and tag.startswith('grid_'):
+        if not game_mode:
+            if len(hovered) == 1:
+                tag = hovered[0]
+                if ui.none_active() and tag.startswith('grid_'):
+                    fltk.efface('xgrid_hover')
+                    tuile = [int(n) for n in tag.split('_')[1].split('*')]
+                    ui.draw_hovered(tuile[0], tuile[1], map.dim, zoom = zoom, deplacement_map = deplacement_map)
+            elif len(hovered) == 0:
                 fltk.efface('xgrid_hover')
-                tuile = [int(n) for n in tag.split('_')[1].split('*')]
-                ui.draw_hovered(tuile[0], tuile[1], map.dim, zoom = zoom, deplacement_map = deplacement_map)
-        elif len(hovered) == 0:
-            fltk.efface('xgrid_hover')
 
 
         if ev is None:
@@ -179,14 +185,19 @@ def mainloop():
             x, y = fltk.abscisse(ev), fltk.ordonnee(ev)
             for tag in clicked:
                 keys = tag.split('_')
+                if game_mode:
+                    continue
+
                 if keys[0] == 'grid':
                     tuile = [int(n) for n in tag.split('_')[1].split('*')]
                     tsl = map.edit_tile(tuile[1], tuile[0], None)[1]
-                    if tuple(tuile) in solver.visited:
-                        solver.visited.remove(tuile)
 
                     # reshape tsl
                     solver.transl_visited(tsl)
+
+                    # remove balises deco
+                    if tuple(tuile) in solver.visited:
+                        solver.visited.remove(tuple(tuile))
                     fltk.efface_tout()
                     draw()
 
@@ -196,6 +207,9 @@ def mainloop():
             x, y = fltk.abscisse(ev), fltk.ordonnee(ev)
 
             for tag in clicked:
+                if game_mode:
+                    continue
+
                 keys = tag.split('_')
 
                 if keys[0] == 'drag' and f'expand_{keys[1]}' not in clicked and f'close_{keys[1]}' not in clicked:
@@ -235,47 +249,48 @@ def mainloop():
         elif ev[0] == 'Touche':
             touche = fltk.touche(ev)
 
-            # Dézoom
-            if touche == '-':
-                zoom = max(zoom - ZOOM_STEP, MIN_ZOOM)
-                fltk.efface_tout()
-                draw()
+            if not game_mode:
+                # Dézoom
+                if touche == '-':
+                    zoom = max(zoom - ZOOM_STEP, MIN_ZOOM)
+                    fltk.efface_tout()
+                    draw()
 
 
-            # Zoom
-            elif touche == '+' or touche == '=':
-                zoom = min(zoom + ZOOM_STEP, MAX_ZOOM)
-                fltk.efface_tout()
-                draw()
+                # Zoom
+                elif touche == '+' or touche == '=':
+                    zoom = min(zoom + ZOOM_STEP, MAX_ZOOM)
+                    fltk.efface_tout()
+                    draw()
 
-            # Réinitialise le zoom
-            elif touche == '0':
+                # Réinitialise le zoom
+                elif touche == '0':
 
-                # Si non zoomé, retourne à la position initiale
-                # Permet un double clic
-                if zoom == 1:
-                    deplacement_map = (0, 0)
-                zoom = 1
-                fltk.efface_tout()
-                draw()
+                    # Si non zoomé, retourne à la position initiale
+                    # Permet un double clic
+                    if zoom == 1:
+                        deplacement_map = (0, 0)
+                    zoom = 1
+                    fltk.efface_tout()
+                    draw()
 
-            # Active / Désactive la grille
-            elif touche == '1':
-                grid = not grid
-                fltk.efface_tout()
-                draw()
+                # Active / Désactive la grille
+                elif touche == '1':
+                    grid = not grid
+                    fltk.efface_tout()
+                    draw()
 
-            # Remove selected
-            elif touche == 'Escape':
-                map.debug = not map.debug
-                fltk.efface_tout()
-                draw()
+                # Activer debug
+                elif touche == 'Escape':
+                    map.debug = not map.debug
+                    fltk.efface_tout()
+                    draw()
 
-            # Toggle riviere naturelle
-            elif touche.lower() == 'r':
-                map.riviere = not map.riviere
-                fltk.efface_tout()
-                draw()
+                # Toggle riviere naturelle
+                elif touche.lower() == 'r':
+                    map.riviere = not map.riviere
+                    fltk.efface_tout()
+                    draw()
 
             # Déplacements de la carte
             elif touche in ['Left', 'Right', 'Up', 'Down']:
@@ -348,27 +363,36 @@ def mainloop():
                     draw()
 
             if ui.none_active():
-                # Gestionnaire de sauvegardes
-                if touche.lower() == 's' or touche.lower() == 'o':
-                    open_mode = False
-                    if touche.lower() == 'o':
-                        open_mode = True
-            
-                    if not ui.get_state('saved'):
-                        ui.change_state('saved')
-                        draw_popup('saved')
-
-                # Decor
-                if touche.lower() == 'd':
-                    solver.decorate(map, clear=True)
+                if touche == 'space':
+                    game_mode = True
+                    zoom = 1
                     fltk.efface_tout()
                     draw()
 
-                # Solver con
-                if touche.lower() == 'i':
-                    solver.solver(map)
-                    fltk.efface_tout()
-                    draw()
+                if not game_mode:
+                    # Gestionnaire de sauvegardes
+                    if touche.lower() == 's' or touche.lower() == 'o':
+                        open_mode = False
+                        if touche.lower() == 'o':
+                            open_mode = True
+                
+                        if not ui.get_state('saved'):
+                            ui.change_state('saved')
+                            draw_popup('saved')
+
+                    # Decor
+                    if touche.lower() == 'd':
+                        solver.decorate(map, clear=True)
+                        fltk.efface_tout()
+                        draw()
+
+                    # Solver con
+                    if touche.lower() == 'i':
+                        debug_step = float('inf')
+                        solver.solver(map, debug_step)
+                        fltk.efface_tout()
+                        draw()
+
 
 
         elif ev[0] == 'Redimension':

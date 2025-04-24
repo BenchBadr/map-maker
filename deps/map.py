@@ -424,10 +424,12 @@ class Map:
                 # Cas 3.1
                 # Si la riviere se prolonge en des None
                 for idc in deg_idc:
+
                     if (ni + dir[idc][0], nj + dir[idc][1]) == (i,j):
                         continue # On ne teste jamais avec None
-                    if self.grille[nj + dir[idc][1]][ni + dir[idc][0]] is None:
-                        return (3, 1)
+                    if 0 <= nj + dir[idc][1] < self.dim[0] and 0 <= ni + dir[idc][0] < self.dim[1]:
+                        if self.grille[nj + dir[idc][1]][ni + dir[idc][0]] is None:
+                            return (3, 1)
             return False
         
         acc_global = [0,0,0]

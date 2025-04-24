@@ -658,6 +658,9 @@ class Map:
         source = (floor(x), floor(y))
         tuile_source = self.grille[source[0]][source[1]]
 
+        if tuile_source is None:
+            return None, []
+
         if 'P' in tuile_source:
             eligible = self.deco_tiles['terre']
             biome = 'terre'
@@ -683,7 +686,7 @@ class Map:
 
             arrivee = floor(x + dw), floor(y + dh)
 
-            # Si arrivee n'existe pas
+            # Si arrivee hors champ
             if not(0 <= arrivee[0] < self.dim[1] and 0 <= arrivee[1] < self.dim[0]):
                 continue
             
@@ -721,6 +724,8 @@ class Map:
 
             # si la deco est à cheval
             else:
+                if arrivee_tuile is None:
+                    continue
                 # On teste biome valide dans l'arrivée
                 if biome == 'mer':
                     if arrivee_tuile != 'SSSS':

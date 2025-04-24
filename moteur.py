@@ -360,7 +360,7 @@ def mainloop():
 
                 # Decor
                 if touche.lower() == 'd':
-                    solver.decorate(map, clear=False)
+                    solver.decorate(map, clear=True)
                     fltk.efface_tout()
                     draw()
 

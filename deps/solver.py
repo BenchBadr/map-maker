@@ -20,7 +20,7 @@ class Solver:
         '''
         new_visited = set()
         for i, j in self.visited:
-            new_visited.add(i + tsl[tsl[0]], j + tsl[tsl[1]])
+            new_visited.add((i + tsl[tsl[0]], j + tsl[tsl[1]]))
         self.visited = new_visited
 
     def decorate(self, map = None, clear=False, freq:float =.5) -> None:
@@ -44,6 +44,7 @@ class Solver:
         if clear:
             self.visited = set()
             map.deco = {}
+            map.tiles_to_deco = {}
 
         # visited = set()
 
@@ -83,12 +84,13 @@ class Solver:
 
                     aire = len(zone)
                     nb_deco = ceil(aire * freq)
+
                     for _ in range(nb_deco):
                         dx, dy = random.choice(zone)
                         dx, dy = dx + random.random(), dy + random.random()
 
-                        biome, dec_pos = map.deco_possible(dx, dy)
-
+                        biome, dec_pos = map.deco_possible(dy, dx)
+                        
                         if dec_pos:
                             deco = random.choice(dec_pos)
                             map.add_decoration(f"{deco}|{dy}*{dx}")
@@ -140,7 +142,7 @@ class Solver:
         vides = self.empty_tiles()
         step = [0]
 
-        def backtracker():
+        def backtracker(i, j):
             if step[0] >= debug_step:
                 # Visualisation par étapes
                 return False
@@ -149,10 +151,13 @@ class Solver:
                 # rien à compléter
                 return
             
-            for i, j in vides:
-                tuile_pos = self.map.tuiles_possibles(i, j)
-                if not tuile_pos:
-                    return False
+            tuile_pos = self.map.tuiles_possibles(i, j)
+            if tuile_pos:
+                choice = random.choice(tuile_pos)
+                self.fill_tile(i, j, choice)
+                return
+            else:
+                return backtracker(i, j)
 
 
 

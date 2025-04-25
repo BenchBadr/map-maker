@@ -137,7 +137,7 @@ class Map:
 
         return (j + self.deplacement_map[1], i + self.deplacement_map[0]), tsl
 
-    def display_map(self, unit, c0, c1, zoom = 1, deplacement_map = (0,0)) -> None:
+    def display_map(self, unit, c0, c1, zoom = 1, deplacement_map = (0,0), no_base=False) -> None:
         """
         Affiche la carte par cases d'images (ou rectangles si case non définies)
 
@@ -152,8 +152,12 @@ class Map:
         # TODO : Avoid unnecessary renders (case of overflow)
 
         unit = floor(unit * zoom)
-        c0 = (c0 - (unit*self.dim[0]) // 2 +unit // 2) + deplacement_map[0] * unit
-        c1 = (c1 - (unit*self.dim[1]) // 2 + unit // 2) + deplacement_map[1] * unit
+        if not no_base:
+            c0 = (c0 - (unit*self.dim[0]) // 2 +unit // 2) + deplacement_map[0] * unit
+            c1 = (c1 - (unit*self.dim[1]) // 2 + unit // 2) + deplacement_map[1] * unit
+        else:
+            c0 = deplacement_map[0] * unit
+            c1 = deplacement_map[1] * unit
         for i in range(self.dim[0]):
             for j in range(self.dim[1]):
                 if self.grille[i][j] is not None:

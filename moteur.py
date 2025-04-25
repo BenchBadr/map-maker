@@ -4,7 +4,7 @@ import deps.ui as ui
 import deps.save_manager as save
 from deps.solver import Solver
 addons.init(fltk)
-from math import floor
+from math import floor, ceil
 import sys
 sys.setrecursionlimit(10000)  # pour des grilles très grandes
 
@@ -93,7 +93,7 @@ def mainloop():
         ui.grid_selectors(dim, zoom = zoom, deplacement_map = deplacement_map)
 
         # map 
-        map.display_map(unit, (w)//2, (h)//2, zoom=zoom, deplacement_map=deplacement_map)
+        map.display_map(unit, (w)//2, (h)//2, zoom=zoom, deplacement_map=deplacement_map, no_base=game_mode)
         
         if not game_mode:
             if grid:
@@ -377,12 +377,25 @@ def mainloop():
             if ui.none_active():
                 if touche == 'space':
                     game_mode = not game_mode
-                    dim = map.dim
-                    size = min(w, h)
-                    unit = floor(size//max(dim))
-                    deplacement_map = (0, 0)
 
-                    zoom = round(w/(3*unit), 1)
+                    if game_mode:
+                        # On ajuste la map pour dim divisible 3
+                        def adj_3(a):
+                            return (3 - a % 3) % 3
+                        for _ in range(adj_3(map.dim[0])):
+                            map.edit_tile(map.dim[0], 0, None)
+                        for _ in range(adj_3(map.dim[1])):
+                            map.edit_tile(0, map.dim[1], None)
+                        
+                        dim = map.dim
+                        size = min(w, h)
+                        unit = size//max(dim)
+
+                        zoom = w / (3 * unit)
+
+                        # auto-fill after adjust
+                        solver.solver(map)
+                        deplacement_map = (0, 0)
                     fltk.efface_tout()
                     draw()
 

@@ -119,7 +119,7 @@ class Solver:
         return self.vides
 
 
-    def solver(self, map, draw = None) -> bool:
+    def solver(self, map, vides = None, draw = None) -> bool:
         '''
         Résout les conflits de décorations
         Args:
@@ -131,8 +131,10 @@ class Solver:
         '''
         self.vides = None
         self.map = map
-
-        self.empty_tiles()
+        if vides is None:
+            self.empty_tiles()
+        else:
+            self.vides = vides
 
         def backtrack(vides):
             # Solution trouvée

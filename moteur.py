@@ -39,6 +39,7 @@ def mainloop():
     map = Map()
     solver = Solver(map)
 
+    redim_game = (0,0)
 
     # Appuyer sur `Escape` pour toggle le mode debug
     map.debug = False
@@ -84,10 +85,7 @@ def mainloop():
         h, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
         dim = map.dim
         size = min(w, h)
-        if not game_mode:
-            unit = size//max(dim)
-        else:
-            unit = 1/3 * size
+        unit = size//max(dim)
 
         # window background
         fltk.rectangle(0, 0, w, h, remplissage="black")
@@ -327,23 +325,14 @@ def mainloop():
 
                 delta_dep_map = map.deplacement_map
                 map.deplacement_map = deplacement_map
+                dep_rel = (deplacement_map[0] - delta_dep_map[0], deplacement_map[1] - delta_dep_map[1])
                 if selected_tile is not None:
                     # deplacement relatif
-                    dep_rel = (deplacement_map[0] - delta_dep_map[0], deplacement_map[1] - delta_dep_map[1])
                     selected_tile = (selected_tile[0] + dep_rel[1], selected_tile[1] + dep_rel[0])
-
-                # Redim + auto-fill en game mode <=> defilement
-                if game_mode:
-                    if deplacement_map!= (0, 0):
-                        adj_a = map.dim[0] - deplacement_map[0]
-                        adj_b = map.dim[1] - deplacement_map[1]
-                        print(adj_a, adj_b, map.dim)
-                        # if adj_a >= map.dim[0]:
-                        #     map.edit_tile(adj_a, 0, None)
-                        solver.solver(map)
+        
                 fltk.efface_tout()
                 draw()
-
+                    
             if (ui.get_state('popup') or ui.get_state('deco')) and touche == 'Down' or touche == 'Up':
                 if touche == 'Down':
                     map.current_page += 1
@@ -388,7 +377,12 @@ def mainloop():
             if ui.none_active():
                 if touche == 'space':
                     game_mode = not game_mode
-                    zoom = 1
+                    dim = map.dim
+                    size = min(w, h)
+                    unit = floor(size//max(dim))
+                    deplacement_map = (0, 0)
+
+                    zoom = round(w/(3*unit), 1)
                     fltk.efface_tout()
                     draw()
 
@@ -421,7 +415,7 @@ def mainloop():
                             fltk.efface_tout()
                             draw()
                             fltk.mise_a_jour()
-                        if not solver.solver(map, draw_func):
+                        if not solver.solver(map, draw=draw_func):
                             ui.change_state('solverr')
                             draw_popup('solverr')
                         fltk.efface_tout()

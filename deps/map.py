@@ -78,6 +78,9 @@ class Map:
             i: La coordonnée i de la tuile.
             j: La coordonnée j de la tuile.
             tuile: Le nom de la nouvelle tuile.
+        Returns
+            Updated coords: si redimension, mise a jour de i,j
+            tsl: translation si redimensionnement (pour les décos essentiellement)
         """
 
         # Ajuster les coordonnés en fonction du déplacement

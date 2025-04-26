@@ -110,6 +110,9 @@ def create_popup(key:list[str, bool],
         color (str): Couleur du texte.
         max_width (int) : majore la largeur (à défaut, infini)
         max_height (int) : majore la hauteur (à défaut, infini)
+        content : un titre et un sous-titre à afficher
+        args_func : arguments passés à wrap_func dans un dictionnaire, à défaut, vide.
+        wrap_func : fonction d'affichage du contenu du popup
 
     Returns:
         None: Displays the popup and waits for the user to close it.

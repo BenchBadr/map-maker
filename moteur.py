@@ -207,7 +207,9 @@ def mainloop():
                     if tuple(tuile) in solver.visited:
                         solver.visited.remove(tuple(tuile))
 
-                    zoom = 1
+                    if zoom < 1:
+                        zoom = 1
+
                     fltk.efface_tout()
                     draw()
 
@@ -329,7 +331,22 @@ def mainloop():
                 if selected_tile is not None:
                     # deplacement relatif
                     selected_tile = (selected_tile[0] + dep_rel[1], selected_tile[1] + dep_rel[0])
-        
+                
+                print(dep_rel)
+                if game_mode and False:
+                    # TODO : gestion specifique des cases vides
+
+                    di, dj = dep_rel
+                    if di < 0:
+                        map.edit_tile(map.dim[0] + deplacement_map[0], 0, None)
+                    elif di > 0:
+                        map.edit_tile(-1 + deplacement_map[0], 0, None)
+                    if dj < 0:
+                        map.edit_tile(0, map.dim[1] + deplacement_map[1], None)
+                    elif dj > 0:
+                        map.edit_tile(0, -1 + deplacement_map[1], None)
+                    zoom = w / (3 * unit)
+                    # solver.solver(map)
                 fltk.efface_tout()
                 draw()
                     
@@ -382,6 +399,7 @@ def mainloop():
                         # On ajuste la map pour dim divisible 3
                         def adj_3(a):
                             return (3 - a % 3) % 3
+                        
                         for _ in range(adj_3(map.dim[0])):
                             map.edit_tile(map.dim[0], 0, None)
                         for _ in range(adj_3(map.dim[1])):
@@ -389,12 +407,12 @@ def mainloop():
                         
                         dim = map.dim
                         size = min(w, h)
-                        unit = size//max(dim)
+                        unit = size/max(dim)
 
                         zoom = w / (3 * unit)
 
                         # auto-fill after adjust
-                        solver.solver(map)
+                        # solver.solver(map)
                         deplacement_map = (0, 0)
                     fltk.efface_tout()
                     draw()

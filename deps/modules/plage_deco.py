@@ -16,11 +16,12 @@ def parcours_image(pixels:list, x:int, y:int, width:int, height:int, visited:lis
     '''
 
     s = [(x, y)]
+    step = 0
 
     # On enregistre les coins pour construire les rectangles
     min_x, min_y, max_x, max_y = x, y, x, y
 
-    while s:
+    while s and step < 1000:
         cx, cy = s.pop()
 
         if visited[cx][cy]:
@@ -42,6 +43,9 @@ def parcours_image(pixels:list, x:int, y:int, width:int, height:int, visited:lis
 
             if not visited[nx][ny] and is_non_white(pixels, nx, ny):
                 s.append((nx, ny))
+            
+        step += 1
+
 
     return (min_x, min_y, max_x, max_y)
 
@@ -83,6 +87,6 @@ def analyse_tuile(tuile, debug=False):
 
 
 if __name__ == '__main__':
-    bbox, img = analyse_tuile('FPPP', debug=True)
+    bbox, img = analyse_tuile('FFPP', debug=True)
     print(bbox)
     img.show()

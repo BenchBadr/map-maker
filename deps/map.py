@@ -448,11 +448,11 @@ class Map:
                 acc_global[acc_case[0] - 1] += acc_case[1]
 
 
-        m, M = min(acc_global[0], acc_global[1]), max(acc_global[0], acc_global[1])
-        ext = acc_global[2]
+        mers, montagnes, ext = acc_global
+        m, M = min(mers, montagnes), max(mers, montagnes)
 
         if not(m == 0 and M == 0):
-            if M > m + ext:
+            if M > m + ext and not (montagnes > mers and mers + ext > 0):
                 return False
 
         # def remontee_etat(start:tuple):

@@ -371,13 +371,15 @@ class Map:
 
     def riviere_valide(self, i:int, j:int, nom_tuile:str) -> bool:
         """
-        Renvoie le nombre d'extremités / sources / mers de la rivière en fonction du parcours
-        Si pas de voisin <=> fin (ou début) de rivière
-        Il doit s'agir, au choix de:
-        1. mer (fin)
-        2. montagne (début)
-        3. une case aux extrémités de la grille (fin)
-            3.1. None <=> Extremité
+        Pour un placement de tuile donné (spécifiquement 
+        pour une tuile de rivière), indique si le placement
+        est valide ou non.
+        Args:
+            i: Indice i à vérifier.
+            j: Indice j à vérifier.
+            nom_tuile: Nom de la nouvelle tuile à vérifier.
+        Returns:
+            bool: True si la rivière est valide, False sinon.
         """
 
         parcours = []
@@ -490,8 +492,7 @@ class Map:
             
             if tile not in visited:
                 visited.add((ti, tj))
-
-            parcours.append((ti, tj))
+                parcours.append((ti, tj))
 
             voisins = self.get_vois(ti, tj, (i,j), nom_tuile)
 

@@ -95,6 +95,10 @@ def mainloop():
         # map 
         map.display_map(unit, (w)//2, (h)//2, zoom=zoom, deplacement_map=deplacement_map, no_base=game_mode)
         
+        # voyant riviere en monde debug
+        if map.riviere and map.debug:
+            fltk.rectangle(0, 0, w, h, couleur="blue", epaisseur=20)
+
         if not game_mode:
             if grid:
                 ui.grid(dim, zoom=zoom)

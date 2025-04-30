@@ -271,7 +271,7 @@ def create_popup(key:list[str, bool],
         return
 
 
-def grid_selectors(dim: list[int, int], zoom = 1, deplacement_map = (0,0)) -> None:
+def grid_selectors(dim: list[int, int], zoom = 1, game_mode = False) -> None:
     """
     Crée une grille sur la fenêtre.
     Cette grille est invisible et permet seulement de traiter les slicks sur les cases.
@@ -279,6 +279,8 @@ def grid_selectors(dim: list[int, int], zoom = 1, deplacement_map = (0,0)) -> No
     Args:
         dim (list[int, int]): Dimensions de la grille.
         color (str): Couleur de la grille.
+        zoom (float): Facteur de zoom pour la grille.
+        game_mode (bool): Mode de jeu (True pour le mode jeu, False sinon).
 
     Returns:
         None
@@ -305,7 +307,7 @@ def grid_selectors(dim: list[int, int], zoom = 1, deplacement_map = (0,0)) -> No
                                base_x + (j_ + 1) * unit, 
                                base_y + (i_ + 1) * unit, 
                                epaisseur=0, 
-                               remplissage='grey',
+                               remplissage='grey' if not game_mode else 'black',
                                tag=f"grid_{i}*{j}")
 
 

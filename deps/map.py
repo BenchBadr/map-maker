@@ -156,8 +156,9 @@ class Map:
             c0 = (c0 - (unit*self.dim[0]) // 2 +unit // 2) + deplacement_map[0] * unit
             c1 = (c1 - (unit*self.dim[1]) // 2 + unit // 2) + deplacement_map[1] * unit
         else:
-            c0 = deplacement_map[0] * unit
-            c1 = deplacement_map[1] * unit
+            c0 = (c0 - unit ) + deplacement_map[0] * unit
+            c1 = (c1 - unit ) + deplacement_map[1] * unit
+
         for i in range(self.dim[0]):
             for j in range(self.dim[1]):
                 if self.grille[i][j] is not None:
@@ -192,6 +193,11 @@ class Map:
             fltk.image(init[0] + coords[0], init[1] + coords[1], path,
                        hauteur = floor(ims[1] * unit),
                        largeur = floor(ims[0] * unit))
+
+        # p1, p2 = c0 - .5*unit, c1 - .5*unit
+        # p1, p2 = - unit * deplacement_map[0], - unit * deplacement_map[1]
+        # print(self.deplacement_map)
+        # fltk.rectangle(p1, p2, p1 + 3 * unit, p2 + 3 * unit, epaisseur=10, couleur='orange')
                     
 
     def tuiles_selector(self, key:str, x:int, y:int, x2:int, y2:int, args_func:dict) -> None:
@@ -605,6 +611,7 @@ class Map:
             
         # changement de variables pour afficher une page différente
         count = (current_page * (n_x * n_y))
+        print(self.deco_tiles)
         for i in range(n_y):
             for j in range(min(n_x, s - count)):
                 c = (x+j*(win_unit+win_p), y+(i)*(win_unit+win_p)+win_p/2.5)

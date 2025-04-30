@@ -165,6 +165,9 @@ class Solver:
                 if backtrack(vides[1:]):
                     return True
                 
+                # inutile — reaffecté au debut
+                # self.map.grille[j][i] = None
+                
 
             return False
 

@@ -90,7 +90,7 @@ def mainloop():
         # window background
         fltk.rectangle(0, 0, w, h, remplissage="black")
         # grid
-        ui.grid_selectors(dim, zoom = zoom, deplacement_map = deplacement_map)
+        ui.grid_selectors(dim, zoom = zoom, game_mode=game_mode)
 
         # map 
         map.display_map(unit, (w)//2, (h)//2, zoom=zoom, deplacement_map=deplacement_map, no_base=game_mode)
@@ -211,8 +211,8 @@ def mainloop():
                     if tuple(tuile) in solver.visited:
                         solver.visited.remove(tuple(tuile))
 
-                    if zoom < 1:
-                        zoom = 1
+                    # if zoom < 1:
+                    #     zoom = 1
 
                     fltk.efface_tout()
                     draw()
@@ -336,21 +336,40 @@ def mainloop():
                     # deplacement relatif
                     selected_tile = (selected_tile[0] + dep_rel[1], selected_tile[1] + dep_rel[0])
                 
-                print(dep_rel)
-                if game_mode and False:
-                    # TODO : gestion specifique des cases vides
 
-                    di, dj = dep_rel
-                    if di < 0:
-                        map.edit_tile(map.dim[0] + deplacement_map[0], 0, None)
-                    elif di > 0:
-                        map.edit_tile(-1 + deplacement_map[0], 0, None)
-                    if dj < 0:
-                        map.edit_tile(0, map.dim[1] + deplacement_map[1], None)
-                    elif dj > 0:
-                        map.edit_tile(0, -1 + deplacement_map[1], None)
+                if game_mode:
+                    # TODO : gestion specifique des cases vides
+                    # di, dj = dep_rel
+                    di, dj = deplacement_map
+
+                    vides = []
+                    if di != 0:
+                        init = -dj
+                        if di < 0:
+                            x = map.edit_tile(map.dim[0] + di, 0, None)
+                            print('redim gauche')
+                            vides += [(j, map.dim[1]-1, 2) for j in range(init, min(init+3, map.dim[1]), 1)] 
+                            print(vides)
+                        elif di > 0:
+                            map.edit_tile(-1 + di, 0, None)
+                            print('redim droite')
+                            vides += [(j, 0, 2) for j in range(init, min(init+3, map.dim[1]), 1)] 
+                    # elif di > 0:
+                    #     x = map.edit_tile(-1 + di, 0, None)
+                    #     print('Di > 0',x)
+                    #     vides += [(0,j, 2) for j in range(map.dim[1])] 
+                    # if dj < 0:
+                    #     x = map.edit_tile(0, map.dim[1] + dj, None)
+                    #     print('Dj < 0',x)
+                    #     vides += [(i, dim[1], 2) for i in range(-di, min(-di+3, map.dim[0]-1), 1)]
+                    # elif dj > 0:
+                    #     x = map.edit_tile(0, -1 + dj, None)
+                    #     print('Dj > 0',x)
+                    #     vides += [(i, 0, 2) for i in range(-di, min(-di+3, map.dim[0]-1), 1)]
+                    
+                    unit = min(w, h)//max(map.dim)
                     zoom = w / (3 * unit)
-                    # solver.solver(map)
+                    solver.solver(map, vides=vides)
                 fltk.efface_tout()
                 draw()
                     
@@ -399,24 +418,39 @@ def mainloop():
                 if touche == 'space':
                     game_mode = not game_mode
 
+
+                    # Activation du game mode
                     if game_mode:
+                        # On complete d'abord la map (avant redimension)
+                        solver.solver(map)
                         # On ajuste la map pour dim divisible 3
                         def adj_3(a):
                             return (3 - a % 3) % 3
                         
-                        for _ in range(adj_3(map.dim[0])):
+                        redim_fac = adj_3(map.dim[0]), adj_3(map.dim[1])
+
+                        # On simule les contraintes, 1 si adjacents à l'extremité d'origine
+                        # 2 sinon
+                        # contraintes naives
+                        vides = [(j+map.dim[0],i, 1+int(j!=0)) for j in range(redim_fac[0]) for i in range(map.dim[1])] 
+
+                        vides += [(i, j + map.dim[1], 1+int(j != 0)) for i in range(map.dim[0] + redim_fac[0]) for j in range(redim_fac[1])]
+
+                        for _ in range(redim_fac[0]):
                             map.edit_tile(map.dim[0], 0, None)
-                        for _ in range(adj_3(map.dim[1])):
+                        for _ in range(redim_fac[1]):
                             map.edit_tile(0, map.dim[1], None)
+                        
                         
                         dim = map.dim
                         size = min(w, h)
                         unit = size/max(dim)
 
                         zoom = w / (3 * unit)
+                        dpm = (map.dim[0] - 3)//2, (map.dim[1] - 3)//2
 
                         # auto-fill after adjust
-                        # solver.solver(map)
+                        solver.solver(map, vides)
                         deplacement_map = (0, 0)
                     fltk.efface_tout()
                     draw()

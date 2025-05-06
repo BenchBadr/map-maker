@@ -158,9 +158,9 @@ class Solver:
 
                 # visualisation (optionnelle, si en mode debug)
                 if self.map.debug and draw is not None:
-                    time.sleep(.01)
-                    print(f"{round((1 - len(vides)/len(self.vides))*100,2)}%")
                     draw()
+                    fltk.rectangle(0, 0, (1 - len(vides)/len(self.vides))*fltk.largeur_fenetre(), fltk.hauteur_fenetre()//20, remplissage='#00CBA9',epaisseur=0)
+                    fltk.mise_a_jour()
 
                 if backtrack(vides[1:]):
                     return True

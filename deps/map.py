@@ -129,10 +129,18 @@ class Map:
 
         # Si suppression de tuile
         # Supprimer les décos associée
+        # Supprimer les deco a cheval sur une autre tuile que celle qu'on tente de supprimer
         if tuile is None:
             if (i, j) in self.tiles_to_deco:
                 for coords in self.tiles_to_deco[(i, j)]:
                     del self.deco[coords]
+                for neigh in [(1,1), (0,1), (1,0), (-1, 0), (0,-1), (-1, -1)]:
+                    ni, nj = i + neigh[0], j + neigh[1]
+                    if (ni, nj) in self.tiles_to_deco:
+                        for deco_to_delete in self.tiles_to_deco[(i, j)]:
+                            if deco_to_delete in self.tiles_to_deco[(ni, nj)]:
+                                self.tiles_to_deco[(ni, nj)].remove(deco_to_delete)
+                        
                 del self.tiles_to_deco[(i, j)]
 
         return (j + self.deplacement_map[1], i + self.deplacement_map[0]), tsl
@@ -151,7 +159,8 @@ class Map:
 
         # TODO : Avoid unnecessary renders (case of overflow)
 
-        unit = floor(unit * zoom)
+        unit = max(floor(unit * zoom),1)
+        l, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
         if not no_base:
             c0 = (c0 - (unit*self.dim[0]) // 2 +unit // 2) + deplacement_map[0] * unit
             c1 = (c1 - (unit*self.dim[1]) // 2 + unit // 2) + deplacement_map[1] * unit
@@ -159,8 +168,18 @@ class Map:
             c0 = (c0 - unit ) + deplacement_map[0] * unit
             c1 = (c1 - unit ) + deplacement_map[1] * unit
 
-        for i in range(self.dim[0]):
-            for j in range(self.dim[1]):
+        start_x = 0
+        start_y = 0
+        if c0 < 0:
+            start_x = -c0 // unit
+        if c1 < 0:
+            start_y = -c1 // unit
+        for i in range(start_x, self.dim[0]):
+            # if c0 + i * .5 * (unit) > w:
+            #     break
+            for j in range(start_y, self.dim[1]):
+                # if c1 + j * .5 * (unit) > l:
+                #     break
                 if self.grille[i][j] is not None:
                     fltk.image(c0+i*unit, 
                             c1+j*unit, 
@@ -194,9 +213,8 @@ class Map:
                        hauteur = floor(ims[1] * unit),
                        largeur = floor(ims[0] * unit))
 
-        # p1, p2 = c0 - .5*unit, c1 - .5*unit
-        # p1, p2 = - unit * deplacement_map[0], - unit * deplacement_map[1]
-        # print(self.deplacement_map)
+        # p1, p2 = c0 + self.deplacement_map[0] * unit, c1 + self.deplacement_map[1] * unit
+        # print(p1, p2)
         # fltk.rectangle(p1, p2, p1 + 3 * unit, p2 + 3 * unit, epaisseur=10, couleur='orange')
                     
 
@@ -640,7 +658,7 @@ class Map:
             list: Liste des décorations possibles.
         """
 
-        def test_rectangle(tuile:str, start:tuple, end:tuple) -> list:
+        def test_rectangle(tuile:str, start:tuple, end:tuple) -> bool:
             """
             Test si un rectangle peut être placée sur la tuile.
             Ce rectangle est soit un placement complet d'un decor
@@ -664,10 +682,13 @@ class Map:
             x1, y1 = start
             x2, y2 = end
 
-            for bbox in bboxes:
-                bx_min, by_min, bx_max, by_max = bbox
-                if (x1 <= bx_max and x2 >= bx_min and
-                    y1 <= by_max and y2 >= by_min):
+            x_min, x_max = min(x1, x2), max(x1, x2)
+            y_min, y_max = min(y1, y2), max(y1, y2)
+
+
+            for bx_min, by_min, bx_max, by_max in bboxes:
+                if (x_min <= bx_max and x_max >= bx_min and
+                    y_min <= by_max and y_max >= by_min):
                     return False
             return True
         
@@ -711,12 +732,24 @@ class Map:
             arrivee_tuile = self.grille[arrivee[0]][arrivee[1]]
 
             # Vérifie chevauchement avec les décos existantes
+            # (dans les tuiles concernées seulement)
             overlap = False
-            for deco_coords, (deco_path, deco_size) in self.deco.items():
+            chev_dec = set()
+            if source in self.tiles_to_deco:
+                for d in self.tiles_to_deco[source]:
+                    chev_dec.add(d)
+            if arrivee != source and arrivee in self.tiles_to_deco:
+                for d in self.tiles_to_deco[arrivee]:
+                    chev_dec.add(d)
+
+            for deco_coords in chev_dec:
                 if deco_coords == (x,y):
                     continue
                 dx, dy = deco_coords
+
+                deco_size = self.deco[deco_coords][1]
                 dw2, dh2 = deco_size
+
                 # Rectangle de la déco existante
                 rect1 = (x, y, x + dw, y + dh)
                 rect2 = (dx, dy, dx + dw2, dy + dh2)
@@ -725,6 +758,7 @@ class Map:
                         rect1[3] <= rect2[1] or rect1[1] >= rect2[3]):
                     overlap = True
                     break
+
             if overlap:
                 continue
 

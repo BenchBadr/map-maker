@@ -36,7 +36,7 @@ def mainloop():
 
     game_mode = False
 
-    map = Map()
+    map = Map([['PPPP', 'PPPP'],['FMPP', 'PPPP']])
     solver = Solver(map)
 
     redim_game = (0,0)
@@ -338,37 +338,50 @@ def mainloop():
                 
 
                 if game_mode:
-                    # TODO : gestion specifique des cases vides
-                    # di, dj = dep_rel
+                    # Défilement infini
                     di, dj = deplacement_map
+                    
+                    if dep_rel[0] != 0:
+                        redim_game = (redim_game[0] - dep_rel[0], redim_game[1])
+                    if dep_rel[1] != 0:
+                        redim_game = (redim_game[0], redim_game[1] - dep_rel[1])
+
+
+                    # Redim droite
+                    if redim_game[0] + 3 > map.dim[0]:
+                        print('redim droite')
+                        map.edit_tile(map.dim[0] + di, 0, None)
+
+                    # Redim Gauche
+                    if redim_game[0] < 0:
+                        print('redim gauche')
+                        map.edit_tile(-1 + di, 0, None)
+                        deplacement_map = (0, deplacement_map[1])
+
+                    # Redim Bas
+                    if redim_game[1] + 3 > map.dim[1]:
+                        map.edit_tile(0, map.dim[1] + dj, None)
+
+                    # # Redim Haut
+                    if redim_game[1] < 0:
+                        map.edit_tile(0, -1 + dj, None)
+                        deplacement_map = (deplacement_map[0], 0)
+                    print(redim_game, map.dim)
 
                     vides = []
-                    if di != 0:
-                        init = -dj
-                        if di < 0:
-                            x = map.edit_tile(map.dim[0] + di, 0, None)
-                            print('redim gauche')
-                            vides += [(j, map.dim[1]-1, 2) for j in range(init, min(init+3, map.dim[1]), 1)] 
-                            print(vides)
-                        elif di > 0:
-                            map.edit_tile(-1 + di, 0, None)
-                            print('redim droite')
-                            vides += [(j, 0, 2) for j in range(init, min(init+3, map.dim[1]), 1)] 
-                    # elif di > 0:
-                    #     x = map.edit_tile(-1 + di, 0, None)
-                    #     print('Di > 0',x)
-                    #     vides += [(0,j, 2) for j in range(map.dim[1])] 
-                    # if dj < 0:
-                    #     x = map.edit_tile(0, map.dim[1] + dj, None)
-                    #     print('Dj < 0',x)
-                    #     vides += [(i, dim[1], 2) for i in range(-di, min(-di+3, map.dim[0]-1), 1)]
-                    # elif dj > 0:
-                    #     x = map.edit_tile(0, -1 + dj, None)
-                    #     print('Dj > 0',x)
-                    #     vides += [(i, 0, 2) for i in range(-di, min(-di+3, map.dim[0]-1), 1)]
-                    
+                    for j in range(3):
+                        for i in range(3):
+                            x = redim_game[1] + i
+                            y = redim_game[0] + j
+                            if x < map.dim[0] and y < map.dim[1] or True:
+                                print(map.grille[y][x], end=' ')
+                                vides.append((x, y, 2))
+                        print('\n')
+
+                    print(vides)
                     unit = min(w, h)//max(map.dim)
-                    zoom = w / (3 * unit)
+                    if not map.debug:
+                        zoom = w / (3 * unit)
                     solver.solver(map, vides=vides)
                 fltk.efface_tout()
                 draw()
@@ -423,6 +436,7 @@ def mainloop():
                     if game_mode:
                         # On complete d'abord la map (avant redimension)
                         solver.solver(map)
+                        redim_game = (0, 0)
                         # On ajuste la map pour dim divisible 3
                         def adj_3(a):
                             return (3 - a % 3) % 3
@@ -483,7 +497,7 @@ def mainloop():
                         def draw_func():
                             fltk.efface_tout()
                             draw()
-                            fltk.mise_a_jour()
+                            # mise a jour dans solver
                         if not solver.solver(map, draw=draw_func):
                             ui.change_state('solverr')
                             draw_popup('solverr')

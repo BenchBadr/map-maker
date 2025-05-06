@@ -110,3 +110,5 @@ TODO :
 - [ ] Éviter de refaire tuiles possibles dans emtpy_tiles et modifier que les tuiles adjacentes des tuiles completetees
 
 POur solveur efficace + riviere, placer d'abord les rivieres.
+
+Parler de parallélisme

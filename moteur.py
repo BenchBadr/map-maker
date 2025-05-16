@@ -349,12 +349,10 @@ def mainloop():
 
                     # Redim droite
                     if redim_game[0] + 3 > map.dim[0]:
-                        print('redim droite')
                         map.edit_tile(map.dim[0] + di, 0, None)
 
                     # Redim Gauche
                     if redim_game[0] < 0:
-                        print('redim gauche')
                         map.edit_tile(-1 + di, 0, None)
                         deplacement_map = (0, deplacement_map[1])
 
@@ -366,7 +364,6 @@ def mainloop():
                     if redim_game[1] < 0:
                         map.edit_tile(0, -1 + dj, None)
                         deplacement_map = (deplacement_map[0], 0)
-                    print(redim_game, map.dim)
 
                     vides = []
                     for j in range(3):
@@ -374,11 +371,8 @@ def mainloop():
                             x = redim_game[1] + i
                             y = redim_game[0] + j
                             if x < map.dim[0] and y < map.dim[1] or True:
-                                print(map.grille[y][x], end=' ')
                                 vides.append((x, y, 2))
-                        print('\n')
 
-                    print(vides)
                     unit = min(w, h)//max(map.dim)
                     if not map.debug:
                         zoom = w / (3 * unit)
@@ -437,6 +431,8 @@ def mainloop():
                         # On complete d'abord la map (avant redimension)
                         solver.solver(map)
                         redim_game = (0, 0)
+                        deplacement_map = (0,0)
+                        map.deplacement_map = (0,0)
                         # On ajuste la map pour dim divisible 3
                         def adj_3(a):
                             return (3 - a % 3) % 3
@@ -517,5 +513,4 @@ def mainloop():
 
 if __name__ == '__main__':
     mainloop()
-
 

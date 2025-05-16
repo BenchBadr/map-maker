@@ -1,3 +1,3 @@
-[['MMRM', None], [None, 'PPFF']]
-{}
-{}
+[[None, None, 'MPPM', 'PPPF', 'PMMM', None], ['FPMP', 'MMPP', 'PPPP', 'PPPP', 'PFPM', 'PPFF'], ['PPPP', 'PPFM', 'FMPP', 'PPPP', 'PPMF', 'MPFP'], ['FFPP', 'PFPP', 'PPFM', 'FFPP', 'PMPP', 'PBDP'], [None, None, 'PFMP', 'MMPF', 'PMMM', None]]
+{(1.4561130813761243, 2.9004361515123813): ['deps/assets/decors/terre/sheep.png', (0.4, 0.4)], (1.6230525034009151, 2.58519387624433): ['deps/assets/decors/terre/village.png', (0.3, 0.3)], (2.6796069068208626, 0.5985753521582945): ['deps/assets/decors/terre/grass.png', (0.2, 0.1)], (2.96, 3.435): ['deps/assets/decors/terre/black_city.png', (0.4, 0.4)]}
+{(1, 2): [(1.4561130813761243, 2.9004361515123813), (1.6230525034009151, 2.58519387624433)], (1, 3): [(1.4561130813761243, 2.9004361515123813)], (2, 4): [], (3, 3): [(2.96, 3.435)], (2, 0): [(2.6796069068208626, 0.5985753521582945)], (2, 3): [(2.96, 3.435)]}

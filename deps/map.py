@@ -145,7 +145,7 @@ class Map:
 
         return (j + self.deplacement_map[1], i + self.deplacement_map[0]), tsl
 
-    def display_map(self, unit, c0, c1, zoom = 1, deplacement_map = (0,0), no_base=False) -> None:
+    def display_map(self, unit, c0, c1, zoom = 1, deplacement_map = (0,0), no_base=False, adoucissant=0) -> None:
         """
         Affiche la carte par cases d'images (ou rectangles si case non définies)
 
@@ -165,8 +165,8 @@ class Map:
             c0 = (c0 - (unit*self.dim[0]) // 2 +unit // 2) + deplacement_map[0] * unit
             c1 = (c1 - (unit*self.dim[1]) // 2 + unit // 2) + deplacement_map[1] * unit
         else:
-            c0 = (c0 - unit ) + deplacement_map[0] * unit
-            c1 = (c1 - unit ) + deplacement_map[1] * unit
+            c0 = (c0 - unit ) + deplacement_map[0] * unit #- adoucissant * (unit/self.dim[0])
+            c1 = (c1 - unit ) + deplacement_map[1] * unit #- adoucissant * (unit/self.dim[1])
 
         start_x = 0
         start_y = 0
@@ -174,6 +174,7 @@ class Map:
             start_x = -c0 // unit
         if c1 < 0:
             start_y = -c1 // unit
+
         for i in range(start_x, self.dim[0]):
             # if c0 + i * .5 * (unit) > w:
             #     break
@@ -213,10 +214,7 @@ class Map:
                        hauteur = floor(ims[1] * unit),
                        largeur = floor(ims[0] * unit))
 
-        # p1, p2 = c0 + self.deplacement_map[0] * unit, c1 + self.deplacement_map[1] * unit
-        # print(p1, p2)
-        # fltk.rectangle(p1, p2, p1 + 3 * unit, p2 + 3 * unit, epaisseur=10, couleur='orange')
-                    
+
 
     def tuiles_selector(self, key:str, x:int, y:int, x2:int, y2:int, args_func:dict) -> None:
         """
@@ -629,7 +627,7 @@ class Map:
             
         # changement de variables pour afficher une page différente
         count = (current_page * (n_x * n_y))
-        print(self.deco_tiles)
+
         for i in range(n_y):
             for j in range(min(n_x, s - count)):
                 c = (x+j*(win_unit+win_p), y+(i)*(win_unit+win_p)+win_p/2.5)
@@ -674,16 +672,23 @@ class Map:
             if tuile is None:
                 return False
             
-            if tuile not in self.plage_memo:
-                self.plage_memo[tuile] = analyse_tuile(tuile)
-
-            bboxes = self.plage_memo[tuile]
-
             x1, y1 = start
             x2, y2 = end
 
             x_min, x_max = min(x1, x2), max(x1, x2)
             y_min, y_max = min(y1, y2), max(y1, y2)
+
+            if tuile not in self.plage_memo:
+                self.plage_memo[tuile], img = analyse_tuile(tuile, debug = True)
+                from PIL import Image, ImageDraw
+                draw = ImageDraw.Draw(img)
+                print(start, end)
+                # draw.rectangle([x1*100, y1*100, min(x2,1)*100, min(y2,1)]*100, fill=(0, 0,255, 32), outline='#3c3c3c', width=1)
+                # img.show()
+
+            bboxes = self.plage_memo[tuile]
+
+
 
 
             for bx_min, by_min, bx_max, by_max in bboxes:
@@ -767,6 +772,7 @@ class Map:
                 # alors bbox, donc check validité
                 local_x = x - source[0]
                 local_y = y - source[1]
+
                 if not test_rectangle(tuile_source, (local_x, local_y), (local_x + dw, local_y + dh)):
                     continue
 
@@ -785,9 +791,16 @@ class Map:
                 elif biome == 'terre':
                     if 'P' not in arrivee_tuile:
                         continue
-                # On teste position valide
-                delta_dw, delta_dh = dw - abs(arrivee[0] - 1), dh - abs(arrivee[1] - 1)
-                if test_rectangle(arrivee_tuile, (0,0), (delta_dw, delta_dh)):
+
+                # On teste position valide en ce qui concerne
+                # ce qui "déborde"
+                # FIX DECOR HERE
+                leftover = min(0, dw - (x - source[0] - abs(arrivee[0] - source[0]))),min(dh - (y - source[1] + abs(arrivee[1] - source[1])), 0)
+                print('leftover', leftover)
+                ov_coords = max(0, x + dw - arrivee[0]), max(0, y + dh - arrivee[1])
+                arrivee_coords = x + dw - arrivee[0], y + dh - arrivee[1]
+                print('OV + ARRIVEE', ov_coords, arrivee_coords, (x,y), (dw, dh))
+                if test_rectangle(arrivee_tuile, ov_coords, arrivee_coords):
                     deco_ok.append(candidat)
         
         return biome, deco_ok

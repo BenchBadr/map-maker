@@ -87,6 +87,6 @@ def analyse_tuile(tuile, debug=False):
 
 
 if __name__ == '__main__':
-    bbox, img = analyse_tuile('FMPP', debug=True)
+    bbox, img = analyse_tuile('FFPP', debug=True)
     print(bbox)
     img.show()

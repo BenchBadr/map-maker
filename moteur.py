@@ -53,7 +53,7 @@ def mainloop():
     adoucissant = [0,0]
     # Pas d'adoucissement
     # | a | ≤ ε -> plus lisse (entre 0 et 1)
-    adoucisseur = .5
+    adoucisseur = .1
 
     
     fltk.cree_fenetre(w, h, redimension=True)
@@ -320,16 +320,35 @@ def mainloop():
             if touche in ['Left', 'Right', 'Up', 'Down']:
                 k = 1
                 if game_mode and adoucisseur != 0:
-                    # Adoucissement 
+                    # Adoucissement du défilement
                     print('adoucissant', adoucissant)
                     k = 0
-                    if abs(adoucissant[0]) >= 1 or adoucissant[0] == 0:
-                        k = 1
-                        adoucissant[0] = 0
 
-                    if abs(adoucissant[1]) >= 1:
-                        # k = 1
-                        adoucissant[1] = 0
+                    # NB : Erreur de flottants
+                    # a + a +... + a != n * a
+                    # suprenant, donc on compare |x - 1| < ε
+                    # <=> |x| < ε avec ε = adoucisseur
+
+                    # if adoucissant[0] == 0:
+                    #     k = 1
+
+                    # if adoucissant[1] == 0:
+                    #     k = 1
+
+
+                    if abs(adoucissant[0]) >= 1 - adoucisseur:
+                        if adoucissant[0] > 0:
+                            adoucissant[0] = - adoucisseur
+                        else:
+                            adoucissant[0] = adoucisseur
+
+                    if abs(adoucissant[1]) >= 1 - adoucisseur:
+                        if adoucissant[1] > 0:
+                            adoucissant[1] = - adoucisseur
+                        else:
+                            adoucissant[1] = adoucisseur
+                    
+    
                 if not ui.get_state('saved'):
 
                     # Gauche

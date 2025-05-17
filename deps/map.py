@@ -161,12 +161,13 @@ class Map:
 
         unit = max(floor(unit * zoom),1)
         l, w = fltk.hauteur_fenetre(), fltk.largeur_fenetre()
+        print('BRE BRE')
         if not no_base:
             c0 = (c0 - (unit*self.dim[0]) // 2 +unit // 2) + deplacement_map[0] * unit
             c1 = (c1 - (unit*self.dim[1]) // 2 + unit // 2) + deplacement_map[1] * unit
         else:
-            c0 = (c0 - unit ) + deplacement_map[0] * unit #- adoucissant * (unit/self.dim[0])
-            c1 = (c1 - unit ) + deplacement_map[1] * unit #- adoucissant * (unit/self.dim[1])
+            c0 = (c0 - unit ) + deplacement_map[0] * unit - adoucissant[0] * unit
+            c1 = (c1 - unit ) + deplacement_map[1] * unit - adoucissant[1] * unit
 
         start_x = 0
         start_y = 0
@@ -175,10 +176,10 @@ class Map:
         if c1 < 0:
             start_y = -c1 // unit
 
-        for i in range(start_x, self.dim[0]):
+        for i in range(int(start_x), self.dim[0]):
             # if c0 + i * .5 * (unit) > w:
             #     break
-            for j in range(start_y, self.dim[1]):
+            for j in range(int(start_y), self.dim[1]):
                 # if c1 + j * .5 * (unit) > l:
                 #     break
                 if self.grille[i][j] is not None:

@@ -49,6 +49,12 @@ def mainloop():
 
     state_on_click = 1 # pour eviter erreurs de calculs pour deco
 
+
+    adoucissant = [0,0]
+    # Pas d'adoucissement
+    # | a | ≤ ε -> plus lisse (entre 0 et 1)
+    adoucisseur = .5
+
     
     fltk.cree_fenetre(w, h, redimension=True)
 
@@ -93,7 +99,7 @@ def mainloop():
         ui.grid_selectors(dim, zoom = zoom, game_mode=game_mode)
 
         # map 
-        map.display_map(unit, (w)//2, (h)//2, zoom=zoom, deplacement_map=deplacement_map, no_base=game_mode)
+        map.display_map(unit, (w)//2, (h)//2, zoom=zoom, deplacement_map=deplacement_map, no_base=game_mode, adoucissant=adoucissant)
         
         # voyant riviere en monde debug
         if map.riviere and map.debug:
@@ -251,8 +257,9 @@ def mainloop():
                         if ui.none_active():
                             tuile = [int(n) for n in tag.split('_')[1].split('*')]
                             selected_tile = tuile
-                            transl = (selected_tile[0] - map.deplacement_map[1], selected_tile[1] - map.deplacement_map[0])
-                            if 0 <= transl[0] < map.dim[0] and 0 <= transl[1] < map.dim[1] \
+                            transl = (selected_tile[0] - deplacement_map[1], selected_tile[1] - deplacement_map[0])
+                            print(selected_tile, transl, map.dim)
+                            if 0 <= transl[0] < map.dim[1] and 0 <= transl[1] < map.dim[0] \
                                 and map.grille[transl[1]][transl[0]] != None:
                                 memo_coords = (x,y)
                                 state_on_click = zoom, map.deplacement_map
@@ -311,23 +318,46 @@ def mainloop():
 
             # Déplacements de la carte
             if touche in ['Left', 'Right', 'Up', 'Down']:
+                k = 1
+                if game_mode and adoucisseur != 0:
+                    # Adoucissement 
+                    print('adoucissant', adoucissant)
+                    k = 0
+                    if abs(adoucissant[0]) >= 1 or adoucissant[0] == 0:
+                        k = 1
+                        adoucissant[0] = 0
+
+                    if abs(adoucissant[1]) >= 1:
+                        # k = 1
+                        adoucissant[1] = 0
                 if not ui.get_state('saved'):
+
                     # Gauche
                     if touche == 'Left':
-                        deplacement_map = (deplacement_map[0] + 1, deplacement_map[1])
+                        deplacement_map = (deplacement_map[0] + k, deplacement_map[1])
+                        adoucissant[0] += adoucisseur
                     
                     # Droite
                     elif touche == 'Right':
-                        deplacement_map = (deplacement_map[0] - 1, deplacement_map[1])
+                        deplacement_map = (deplacement_map[0] - k, deplacement_map[1])
+                        adoucissant[0] -= adoucisseur
                     
                 if ui.none_active():
                     # Haut
                     if touche == 'Up':
-                        deplacement_map = (deplacement_map[0], deplacement_map[1] + 1)
+                        deplacement_map = (deplacement_map[0], deplacement_map[1] + k)
+                        adoucissant[1] += adoucisseur
 
                     # Bas
                     if touche == 'Down':
-                        deplacement_map = (deplacement_map[0], deplacement_map[1] - 1)
+                        deplacement_map = (deplacement_map[0], deplacement_map[1] - k)
+                        adoucissant[1] -= adoucisseur
+
+                
+                if k != 1:
+                    fltk.efface_tout()
+                    draw()
+                    continue
 
                 delta_dep_map = map.deplacement_map
                 map.deplacement_map = deplacement_map
@@ -337,7 +367,7 @@ def mainloop():
                     selected_tile = (selected_tile[0] + dep_rel[1], selected_tile[1] + dep_rel[0])
                 
 
-                if game_mode:
+                if game_mode and (k == 1):
                     # Défilement infini
                     di, dj = deplacement_map
                     
@@ -425,14 +455,14 @@ def mainloop():
                 if touche == 'space':
                     game_mode = not game_mode
 
+                    deplacement_map = (0,0)
+                    map.deplacement_map = (0,0)
 
                     # Activation du game mode
                     if game_mode:
                         # On complete d'abord la map (avant redimension)
                         solver.solver(map)
                         redim_game = (0, 0)
-                        deplacement_map = (0,0)
-                        map.deplacement_map = (0,0)
                         # On ajuste la map pour dim divisible 3
                         def adj_3(a):
                             return (3 - a % 3) % 3

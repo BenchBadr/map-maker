@@ -258,7 +258,6 @@ def mainloop():
                             tuile = [int(n) for n in tag.split('_')[1].split('*')]
                             selected_tile = tuile
                             transl = (selected_tile[0] - deplacement_map[1], selected_tile[1] - deplacement_map[0])
-                            print(selected_tile, transl, map.dim)
                             if 0 <= transl[0] < map.dim[1] and 0 <= transl[1] < map.dim[0] \
                                 and map.grille[transl[1]][transl[0]] != None:
                                 memo_coords = (x,y)
@@ -316,24 +315,34 @@ def mainloop():
                     fltk.efface_tout()
                     draw()
 
+
             # Déplacements de la carte
             if touche in ['Left', 'Right', 'Up', 'Down']:
                 k = 1
+
+                # Pour compenser le deplacement naturel de redimension
+                # si défilement lisse
+
                 if game_mode and adoucisseur != 0:
                     # Adoucissement du défilement
-                    print('adoucissant', adoucissant)
                     k = 0
+
+                    # Adoucissement non complété
+                    # Preuve de concept
+
 
                     # NB : Erreur de flottants
                     # a + a +... + a != n * a
                     # suprenant, donc on compare |x - 1| < ε
                     # <=> |x| < ε avec ε = adoucisseur
+                    ## au lieu de x == 0 -> abs(x) < ε
 
-                    # if adoucissant[0] == 0:
-                    #     k = 1
-
-                    # if adoucissant[1] == 0:
-                    #     k = 1
+                    # if touche in ['Left', 'Right']:
+                    #     if abs(adoucissant[0]) < adoucisseur:
+                    #         k = 1
+                    # else:
+                    #     if abs(adoucissant[1]) < adoucisseur:
+                    #         k = 1
 
 
                     if abs(adoucissant[0]) >= 1 - adoucisseur:
@@ -342,11 +351,18 @@ def mainloop():
                         else:
                             adoucissant[0] = adoucisseur
 
+                        # °°° Remove for demo
+                        # k = 1
+
                     if abs(adoucissant[1]) >= 1 - adoucisseur:
                         if adoucissant[1] > 0:
                             adoucissant[1] = - adoucisseur
                         else:
                             adoucissant[1] = adoucisseur
+
+                        # °°° Remove for demo
+                        # k = 1
+
                     
     
                 if not ui.get_state('saved'):
@@ -354,23 +370,23 @@ def mainloop():
                     # Gauche
                     if touche == 'Left':
                         deplacement_map = (deplacement_map[0] + k, deplacement_map[1])
-                        adoucissant[0] += adoucisseur
+                        adoucissant[0] -= adoucisseur
                     
                     # Droite
                     elif touche == 'Right':
                         deplacement_map = (deplacement_map[0] - k, deplacement_map[1])
-                        adoucissant[0] -= adoucisseur
+                        adoucissant[0] += adoucisseur
                     
                 if ui.none_active():
                     # Haut
                     if touche == 'Up':
                         deplacement_map = (deplacement_map[0], deplacement_map[1] + k)
-                        adoucissant[1] += adoucisseur
+                        adoucissant[1] -= adoucisseur
 
                     # Bas
                     if touche == 'Down':
                         deplacement_map = (deplacement_map[0], deplacement_map[1] - k)
-                        adoucissant[1] -= adoucisseur
+                        adoucissant[1] += adoucisseur
 
                 
                 if k != 1:
@@ -389,6 +405,7 @@ def mainloop():
                 if game_mode and (k == 1):
                     # Défilement infini
                     di, dj = deplacement_map
+                    di, dj = di + ceil(adoucissant[0]), dj + ceil(adoucissant[1])
                     
                     if dep_rel[0] != 0:
                         redim_game = (redim_game[0] - dep_rel[0], redim_game[1])
@@ -414,6 +431,7 @@ def mainloop():
                         map.edit_tile(0, -1 + dj, None)
                         deplacement_map = (deplacement_map[0], 0)
 
+
                     vides = []
                     for j in range(3):
                         for i in range(3):
@@ -426,6 +444,9 @@ def mainloop():
                     if not map.debug:
                         zoom = w / (3 * unit)
                     solver.solver(map, vides=vides)
+
+
+
                 fltk.efface_tout()
                 draw()
                     

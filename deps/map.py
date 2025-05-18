@@ -657,39 +657,42 @@ class Map:
             list: Liste des décorations possibles.
         """
 
-        def test_rectangle(tuile:str, start:tuple, end:tuple) -> bool:
+        def test_rectangle(tuiles:list, start:tuple, end:tuple) -> bool:
             """
             Test si un rectangle peut être placée sur la tuile.
             Ce rectangle est soit un placement complet d'un decor
             Soit partiel si la tuile est à cheval.
 
             Args:
-                tuile: str, nom de la tuile
+                tuiles: liste des tuiles sur lesquelles se trouvent la tuile en question
                 start: tuple, coord de debut du rectangle
                 end: tuple, coord de fin du rectangle
             Returns:
                 bool: placement valide
             """
-            print('*'*20, tuile, start, end)
-            if tuile is None:
-                return False
-            
-            x1, y1 = start
-            x2, y2 = end
-
-            x_min, x_max = min(x1, x2), max(x1, x2)
-            y_min, y_max = min(y1, y2), max(y1, y2)
-
-            if tuile not in self.plage_memo:
-                self.plage_memo[tuile], img = analyse_tuile(tuile, debug = True)
-                from PIL import Image, ImageDraw
-                draw = ImageDraw.Draw(img)
-                # draw.rectangle([x1*100, y1*100, min(x2,1)*100, min(y2,1)]*100, fill=(0, 0,255, 32), outline='#3c3c3c', width=1)
-                # img.show()
-
-            bboxes = self.plage_memo[tuile]
 
 
+            bboxes = []
+            for tuile in tuiles:
+                tuile_nom = self.grille[tuile[0]][tuile[1]]
+                if tuile_nom is None:
+                    return False
+
+                if tuile_nom not in self.plage_memo:
+                    bbox_local = analyse_tuile(tuile_nom)
+                    self.plage_memo[tuile_nom] = bbox_local
+                    
+
+                dx, dy = tuile[0] - floor(x), tuile[1] - floor(y)
+                bboxes.extend([
+                        [x_min + dx, y_min + dy, x_max + dx, y_max + dy]
+                        for (x_min, y_min, x_max, y_max) in self.plage_memo[tuile_nom]
+                ])
+
+            x_min, y_min = start
+            x_min, y_min = x_min - floor(x_min), y_min - floor(y_min)
+            x_max, y_max = end
+            x_max, y_max = x_max - floor(x_min), y_max - floor(y_min)
 
 
             for bx_min, by_min, bx_max, by_max in bboxes:
@@ -698,8 +701,7 @@ class Map:
                     return False
             return True
         
-        # Les tuiles sont toutes plus petites, 
-        # donc une deco sera au plus sur deux tuiles si décalée
+
         source = (floor(x), floor(y))
         tuile_source = self.grille[source[0]][source[1]]
 
@@ -729,13 +731,19 @@ class Map:
 
             dw, dh = self.deco_tiles[biome][candidat][1]
 
-            arrivee = floor(x + dw), floor(y + dh)
+
+
+
+            arrivee = set()
+            for dr, dc in [(1, 0), (0, 1), (1,1)]:
+                arrivee.add((floor(x + dr * dw), floor(y + dc * dh)))
 
             # Si arrivee hors champ
-            if not(0 <= arrivee[0] < self.dim[0] and 0 <= arrivee[1] < self.dim[1]):
+            # Vérifie que toutes les coordonnées d'arrivée sont dans les limites de la grille
+            if any(not (0 <= ax < self.dim[0] and 0 <= ay < self.dim[1]) for (ax, ay) in arrivee):
                 continue
             
-            arrivee_tuile = self.grille[arrivee[0]][arrivee[1]]
+
 
             # Vérifie chevauchement avec les décos existantes
             # (dans les tuiles concernées seulement)
@@ -744,9 +752,10 @@ class Map:
             if source in self.tiles_to_deco:
                 for d in self.tiles_to_deco[source]:
                     chev_dec.add(d)
-            if arrivee != source and arrivee in self.tiles_to_deco:
-                for d in self.tiles_to_deco[arrivee]:
-                    chev_dec.add(d)
+            for arv in arrivee:
+                if arv != source and arv in self.tiles_to_deco:
+                    for d in self.tiles_to_deco[arv]:
+                        chev_dec.add(d)
 
             for deco_coords in chev_dec:
                 if deco_coords == (x,y):
@@ -768,46 +777,14 @@ class Map:
             if overlap:
                 continue
 
-            # on check la validité de source
-            if not tuile_source in ['PPPP', 'SSSS']:
-                # alors bbox, donc check validité
-                local_x = x - source[0]
-                local_y = y - source[1]
+            zone_check = arrivee.copy()
+            zone_check.add(source)
 
-                if not test_rectangle(tuile_source, (local_x, local_y), (local_x + dw, local_y + dh)):
-                    continue
-
-
-            if arrivee == source:
+            if test_rectangle(zone_check, (x,y), (x + dw, y + dh)):
                 deco_ok.append(candidat)
 
-            # si la deco est à cheval
-            else:
-                if arrivee_tuile is None:
-                    continue
-                # On teste biome valide dans l'arrivée
-                if biome == 'mer':
-                    if arrivee_tuile != 'SSSS':
-                        continue
-                elif biome == 'terre':
-                    if 'P' not in arrivee_tuile:
-                        continue
 
-                # Chevauchement sur 4 pas géré (cause problèmes)
-                
-                source_fin = min(1, x + dw), min(1, y + dh)
-                arrivee_coords = x + dw - arrivee[0], y + dh - arrivee[1]
-                ov_coords = (
-                    x if source_fin[0] < 1 else 0,
-                    y if source_fin[1] < 1 else 0
-                )
-                print('-'*20)
-                print(candidat)
-                print('source',source_fin)
-                print('ov', ov_coords)
-                print('arrivee', arrivee_coords)
-                if test_rectangle(arrivee_tuile, ov_coords, arrivee_coords):
-                    deco_ok.append(candidat)
+            
         
         return biome, deco_ok
     

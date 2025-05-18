@@ -54,7 +54,8 @@ def mainloop():
     # Pas d'adoucissement
     # | a | ≤ ε -> plus lisse (entre 0 et 1)
     # 0 => pas d'adoucissement
-    adoucisseur = 0.05
+    adoucisseur = 0 # 0.05
+    # Adoucissement pas fini, possible de voir la logique en remplacant 0 par 0.05 ci-dessus
 
     
     fltk.cree_fenetre(w, h, redimension=True)

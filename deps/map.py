@@ -670,6 +670,7 @@ class Map:
             Returns:
                 bool: placement valide
             """
+            print('*'*20, tuile, start, end)
             if tuile is None:
                 return False
             
@@ -792,14 +793,19 @@ class Map:
                     if 'P' not in arrivee_tuile:
                         continue
 
-                # On teste position valide en ce qui concerne
-                # ce qui "déborde"
-                # FIX DECOR HERE
-                leftover = min(0, dw - (x - source[0] - abs(arrivee[0] - source[0]))),min(dh - (y - source[1] + abs(arrivee[1] - source[1])), 0)
-                print('leftover', leftover)
-                ov_coords = max(0, x + dw - arrivee[0]), max(0, y + dh - arrivee[1])
+                # Chevauchement sur 4 pas géré (cause problèmes)
+                
+                source_fin = min(1, x + dw), min(1, y + dh)
                 arrivee_coords = x + dw - arrivee[0], y + dh - arrivee[1]
-                print('OV + ARRIVEE', ov_coords, arrivee_coords, (x,y), (dw, dh))
+                ov_coords = (
+                    x if source_fin[0] < 1 else 0,
+                    y if source_fin[1] < 1 else 0
+                )
+                print('-'*20)
+                print(candidat)
+                print('source',source_fin)
+                print('ov', ov_coords)
+                print('arrivee', arrivee_coords)
                 if test_rectangle(arrivee_tuile, ov_coords, arrivee_coords):
                     deco_ok.append(candidat)
         
